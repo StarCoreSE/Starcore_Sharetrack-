@@ -36,10 +36,10 @@ namespace klime.PointCheck
         //Instance
         public IMyCubeGrid Grid { get; private set; }
         public IMyPlayer Owner { get; private set; }
- 
 
-    //passable
-    [ProtoMember(1)] public string GridName;
+
+        //passable
+        [ProtoMember(1)] public string GridName;
         [ProtoMember(2)] public string FactionName;
         [ProtoMember(3)] public int LastUpdate;
         [ProtoMember(4)] public long GridID;
@@ -54,7 +54,7 @@ namespace klime.PointCheck
         [ProtoMember(13)] public int PCU;
         //[ProtoMember(14)] public float DPS;
         [ProtoMember(16)] public Dictionary<string, int> GunList = new Dictionary<string, int>();
-        
+
         [ProtoMember(17)] public string OwnerName;
         [ProtoMember(18)] public bool IsFunctional = false;
         [ProtoMember(19)] public float CurrentIntegrity;
@@ -93,309 +93,309 @@ namespace klime.PointCheck
         public void Update()
         {
 
-            for (int j = 0 ; j < tmpBlocks.Count ; j++)
+            for (int j = 0; j < tmpBlocks.Count; j++)
             {
-                var slim = tmpBlocks[ j ];
+                var slim = tmpBlocks[j];
                 if (slim?.CubeGrid == null || slim.IsDestroyed || slim.FatBlock == null)
                     continue;
             }
-                //LastUpdate = MyUtils.GetRandomInt(MyUtils.GetRandomInt(1 , 4), MyUtils.GetRandomInt(5 , 10));
-                LastUpdate = 5;
-                try
+            //LastUpdate = MyUtils.GetRandomInt(MyUtils.GetRandomInt(1 , 4), MyUtils.GetRandomInt(5 , 10));
+            LastUpdate = 5;
+            try
+            {
+
+                if (Grid != null && Grid.Physics != null)
                 {
-                
-                    if (Grid != null && Grid.Physics != null)
+                    Reset();
+                    connectedGrids.Clear();
+                    MyAPIGateway.GridGroups.GetGroup(Grid, GridLinkTypeEnum.Physical, connectedGrids);
+                    if (connectedGrids.Count > 0)
                     {
-                        Reset();
-                        connectedGrids.Clear();
-                        MyAPIGateway.GridGroups.GetGroup(Grid , GridLinkTypeEnum.Physical , connectedGrids);
-                        if (connectedGrids.Count > 0)
+                        Mass = (Grid as MyCubeGrid).GetCurrentMass();
+                        bool hasPower = false, hasCockpit = false, hasThrust = false, hasGyro = false;
+
+                        string controller = null;
+
+                        foreach (var grid in connectedGrids)
                         {
-                            Mass = (Grid as MyCubeGrid).GetCurrentMass();
-                            bool hasPower = false, hasCockpit = false, hasThrust = false, hasGyro = false;
-
-                            string controller = null;
-
-                            foreach (var grid in connectedGrids)
+                            if (grid != null && grid.Physics != null)
                             {
-                                if (grid != null && grid.Physics != null)
+                                MyCubeGrid subgrid = grid as MyCubeGrid;
+
+                                BlockCount += subgrid.BlocksCount;
+                                PCU += subgrid.BlocksPCU;
+
+                                tmpBlocks.Clear();
+                                grid.GetBlocks(tmpBlocks);
+                                foreach (var block in tmpBlocks)
                                 {
-                                    MyCubeGrid subgrid = grid as MyCubeGrid;
 
-                                    BlockCount += subgrid.BlocksCount;
-                                    PCU += subgrid.BlocksPCU;
+                                    if (block.FatBlock is IMyOxygenGenerator)
+                                    {
+                                        //BattlePoints += 20; //flat Point cost for mass blocks
 
-                                    tmpBlocks.Clear();
-                                    grid.GetBlocks(tmpBlocks);
-                                    foreach (var block in tmpBlocks)
+                                        string h2o2ID = "H2O2Generator";
+                                        if (SpecialBlockList.ContainsKey(h2o2ID))
+                                        {
+                                            SpecialBlockList[h2o2ID] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(h2o2ID, 1);
+                                        }
+                                    }
+                                    //tank block workarounds
+                                    if (block.FatBlock is IMyOxygenTank)
+                                    {
+                                        //BattlePoints += 20; //flat Point cost for mass blocks
+
+                                        string tankID = "HydrogenTank";
+                                        if (SpecialBlockList.ContainsKey(tankID))
+                                        {
+                                            SpecialBlockList[tankID] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(tankID, 1);
+                                        }
+                                    }
+                                    string subtype = block.BlockDefinition.Id.SubtypeName;
+
+                                    if (block.FatBlock is IMyMotorStator && subtype == "SubgridBase")
+                                    {
+                                        //BattlePoints += 20; //flat Point cost for mass blocks
+
+                                        string invID = "Invincible Subgrid";
+                                        if (SpecialBlockList.ContainsKey(invID))
+                                        {
+                                            SpecialBlockList[invID] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(invID, 1);
+                                        }
+                                    }
+
+                                    if (block.FatBlock is IMyUpgradeModule && subtype == "LargeEnhancer")
+                                    {
+                                        //BattlePoints += 20; //flat Point cost for mass blocks
+
+                                        string enhID = "Shield Enhancer";
+                                        if (SpecialBlockList.ContainsKey(enhID))
+                                        {
+                                            SpecialBlockList[enhID] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(enhID, 1);
+                                        }
+                                    }
+                                    if (block.FatBlock is IMyUpgradeModule && subtype == "EmitterL" || subtype == "EmitterLA")
                                     {
 
-                                        if (block.FatBlock is IMyOxygenGenerator)
-                                        {
-                                            //BattlePoints += 20; //flat Point cost for mass blocks
 
-                                            string h2o2ID = "H2O2Generator";
-                                            if (SpecialBlockList.ContainsKey(h2o2ID))
-                                            {
-                                                SpecialBlockList[ h2o2ID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(h2o2ID , 1);
-                                            }
-                                        }
-                                        //tank block workarounds
-                                        if (block.FatBlock is IMyOxygenTank)
+                                        string emitID = "Shield Emitter";
+                                        if (SpecialBlockList.ContainsKey(emitID))
                                         {
-                                            //BattlePoints += 20; //flat Point cost for mass blocks
+                                            SpecialBlockList[emitID] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(emitID, 1);
+                                        }
+                                    }
+                                    if (block.FatBlock is IMyUpgradeModule && subtype == "LargeShieldModulator")
+                                    {
+                                        //BattlePoints += 20; //flat Point cost for mass blocks
 
-                                            string tankID = "HydrogenTank";
-                                            if (SpecialBlockList.ContainsKey(tankID))
-                                            {
-                                                SpecialBlockList[ tankID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(tankID , 1);
-                                            }
+                                        string modID = "Shield Modulator";
+                                        if (SpecialBlockList.ContainsKey(modID))
+                                        {
+                                            SpecialBlockList[modID] += 1;
                                         }
-                                        string subtype = block.BlockDefinition.Id.SubtypeName;
+                                        else
+                                        {
+                                            SpecialBlockList.Add(modID, 1);
+                                        }
+                                    }
+                                    if (block.FatBlock is IMyUpgradeModule && subtype == "DSControlLarge" || subtype == "DSControlTable")
+                                    {
 
-                                        if (block.FatBlock is IMyMotorStator && subtype == "SubgridBase")
-                                        {
-                                            //BattlePoints += 20; //flat Point cost for mass blocks
 
-                                            string invID = "Invincible Subgrid";
-                                            if (SpecialBlockList.ContainsKey(invID))
-                                            {
-                                                SpecialBlockList[ invID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(invID , 1);
-                                            }
+                                        string sconID = "Shield Controller";
+                                        if (SpecialBlockList.ContainsKey(sconID))
+                                        {
+                                            SpecialBlockList[sconID] += 1;
                                         }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(sconID, 1);
+                                        }
+                                    }
 
-                                        if (block.FatBlock is IMyUpgradeModule && subtype == "LargeEnhancer")
+                                    if (block.FatBlock is IMyReactor && (subtype == "LargeBlockLargeGenerator" || subtype == "LargeBlockLargeGeneratorWarfare2"))
+                                    {
+                                        string largeReID = "Large Reactor";
+                                        if (SpecialBlockList.ContainsKey(largeReID))
                                         {
-                                            //BattlePoints += 20; //flat Point cost for mass blocks
+                                            SpecialBlockList[largeReID] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(largeReID, 1);
+                                        }
+                                    }
+                                    if (block.FatBlock is IMyReactor && (subtype == "LargeBlockSmallGenerator" || subtype == "LargeBlockSmallGeneratorWarfare2"))
+                                    {
+                                        //BattlePoints += 20; //flat Point cost for mass blocks
 
-                                            string enhID = "Shield Enhancer";
-                                            if (SpecialBlockList.ContainsKey(enhID))
-                                            {
-                                                SpecialBlockList[ enhID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(enhID , 1);
-                                            }
-                                        }
-                                        if (block.FatBlock is IMyUpgradeModule && subtype == "EmitterL" || subtype == "EmitterLA")
+                                        string smallReID = "Small Reactor";
+                                        if (SpecialBlockList.ContainsKey(smallReID))
                                         {
-                                            
+                                            SpecialBlockList[smallReID] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(smallReID, 1);
+                                        }
+                                    }
 
-                                            string emitID = "Shield Emitter";
-                                            if (SpecialBlockList.ContainsKey(emitID))
-                                            {
-                                                SpecialBlockList[ emitID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(emitID , 1);
-                                            }
-                                        }
-                                        if (block.FatBlock is IMyUpgradeModule && subtype == "LargeShieldModulator")
-                                        {
-                                            //BattlePoints += 20; //flat Point cost for mass blocks
 
-                                            string modID = "Shield Modulator";
-                                            if (SpecialBlockList.ContainsKey(modID))
-                                            {
-                                                SpecialBlockList[ modID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(modID , 1);
-                                            }
-                                        }
-                                        if (block.FatBlock is IMyUpgradeModule && subtype == "DSControlLarge" || subtype == "DSControlTable")
+                                    if (block.FatBlock is IMyUpgradeModule && (subtype == "AQD_LG_GyroBooster"))
+                                    {
+                                        string GyroB = "Gyro Booster";
+                                        if (SpecialBlockList.ContainsKey(GyroB))
                                         {
-                                            
+                                            SpecialBlockList[GyroB] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(GyroB, 1);
+                                        }
+                                    }
+                                    if (block.FatBlock is IMyUpgradeModule && (subtype == "AQD_LG_GyroUpgrade"))
+                                    {
+                                        string largeGyroB = "Large Gyro Booster";
+                                        if (SpecialBlockList.ContainsKey(largeGyroB))
+                                        {
+                                            SpecialBlockList[largeGyroB] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(largeGyroB, 1);
+                                        }
+                                    }
+                                    if (block.FatBlock is IMyGyro && (subtype == "LargeBlockGyro"))
+                                    {
+                                        string smallGyro = "Small Gyro";
+                                        if (SpecialBlockList.ContainsKey(smallGyro))
+                                        {
+                                            SpecialBlockList[smallGyro] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(smallGyro, 1);
+                                        }
+                                    }
+                                    if (block.FatBlock is IMyGyro && (subtype == "AQD_LG_LargeGyro"))
+                                    {
+                                        string largeGyro = "Large Gyro";
+                                        if (SpecialBlockList.ContainsKey(largeGyro))
+                                        {
+                                            SpecialBlockList[largeGyro] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(largeGyro, 1);
+                                        }
+                                    }
 
-                                            string sconID = "Shield Controller";
-                                            if (SpecialBlockList.ContainsKey(sconID))
-                                            {
-                                                SpecialBlockList[ sconID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(sconID , 1);
-                                            }
+                                    if (block.FatBlock is IMyCameraBlock && (subtype == "MA_Buster_Camera"))
+                                    {
+                                        string bCam = "Buster Camera";
+                                        if (SpecialBlockList.ContainsKey(bCam))
+                                        {
+                                            SpecialBlockList[bCam] += 1;
                                         }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(bCam, 1);
+                                        }
+                                    }
+                                    if (block.FatBlock is IMyCameraBlock && (subtype == "LargeCameraBlock"))
+                                    {
+                                        string cCam = "Camera";
+                                        if (SpecialBlockList.ContainsKey(cCam))
+                                        {
+                                            SpecialBlockList[cCam] += 1;
+                                        }
+                                        else
+                                        {
+                                            SpecialBlockList.Add(cCam, 1);
+                                        }
+                                    }
 
-                                        if (block.FatBlock is IMyReactor && (subtype == "LargeBlockLargeGenerator" || subtype == "LargeBlockLargeGeneratorWarfare2"))
-                                        {
-                                            string largeReID = "Large Reactor";
-                                            if (SpecialBlockList.ContainsKey(largeReID))
-                                            {
-                                                SpecialBlockList[ largeReID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(largeReID , 1);
-                                            }
-                                        }
-                                        if (block.FatBlock is IMyReactor && (subtype == "LargeBlockSmallGenerator" || subtype == "LargeBlockSmallGeneratorWarfare2"))
-                                        {
-                                            //BattlePoints += 20; //flat Point cost for mass blocks
 
-                                            string smallReID = "Small Reactor";
-                                            if (SpecialBlockList.ContainsKey(smallReID))
-                                            {
-                                                SpecialBlockList[ smallReID ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(smallReID , 1);
-                                            }
-                                        }
-
-                                        
-                                        if (block.FatBlock is IMyUpgradeModule && (subtype == "AQD_LG_GyroBooster"))
+                                    if (block.BlockDefinition != null && !string.IsNullOrEmpty(subtype))
+                                    {
+                                        //if (subtype.ToLower().Contains("heavy") && subtype.ToLower().Contains("armor")
+                                        if (subtype.Contains("Heavy") && subtype.Contains("Armor"))
                                         {
-                                            string GyroB = "Gyro Booster";
-                                            if (SpecialBlockList.ContainsKey(GyroB))
-                                            {
-                                                SpecialBlockList[ GyroB ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(GyroB , 1);
-                                            }
-                                        }
-                                        if (block.FatBlock is IMyUpgradeModule && (subtype == "AQD_LG_GyroUpgrade"))
-                                        {
-                                            string largeGyroB = "Large Gyro Booster";
-                                            if (SpecialBlockList.ContainsKey(largeGyroB))
-                                            {
-                                                SpecialBlockList[ largeGyroB ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(largeGyroB , 1);
-                                            }
-                                        }
-                                        if (block.FatBlock is IMyGyro && (subtype == "LargeBlockGyro"))
-                                        {
-                                            string smallGyro = "Small Gyro";
-                                            if (SpecialBlockList.ContainsKey(smallGyro))
-                                            {
-                                                SpecialBlockList[ smallGyro ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(smallGyro , 1);
-                                            }
-                                        }
-                                        if (block.FatBlock is IMyGyro && (subtype == "AQD_LG_LargeGyro"))
-                                        {
-                                            string largeGyro = "Large Gyro";
-                                            if (SpecialBlockList.ContainsKey(largeGyro))
-                                            {
-                                                SpecialBlockList[ largeGyro ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(largeGyro , 1);
-                                            }
+                                            Heavyblocks += 1;
                                         }
 
-                                        if (block.FatBlock is IMyCameraBlock && (subtype == "MA_Buster_Camera"))
+                                        if (block.FatBlock != null)
                                         {
-                                            string bCam = "Buster Camera";
-                                            if (SpecialBlockList.ContainsKey(bCam))
-                                            {
-                                                SpecialBlockList[ bCam ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(bCam , 1);
-                                            }
-                                        }
-                                        if (block.FatBlock is IMyCameraBlock && (subtype == "LargeCameraBlock"))
-                                        {
-                                            string cCam = "Camera";
-                                            if (SpecialBlockList.ContainsKey(cCam))
-                                            {
-                                                SpecialBlockList[ cCam ] += 1;
-                                            }
-                                            else
-                                            {
-                                                SpecialBlockList.Add(cCam , 1);
-                                            }
-                                        }
-
-
-                                        if (block.BlockDefinition != null && !string.IsNullOrEmpty(subtype))
-                                        {
-                                            //if (subtype.ToLower().Contains("heavy") && subtype.ToLower().Contains("armor")
-                                            if (subtype.Contains("Heavy") && subtype.Contains("Armor"))
-                                            {
-                                                Heavyblocks += 1;
-                                            }
-
-                                            if (block.FatBlock != null)
-                                            {
-                                                if (!(block.FatBlock is IMyMotorRotor) && 
-                                                !(block.FatBlock is IMyMotorStator) &&
-                                                !(block.BlockDefinition.Id.SubtypeName == "SC_SRB") )
-                                                {
-                                                    CurrentIntegrity += block.Integrity;
-                                                }
-                                            }
-                                            else
+                                            if (!(block.FatBlock is IMyMotorRotor) &&
+                                            !(block.FatBlock is IMyMotorStator) &&
+                                            !(block.BlockDefinition.Id.SubtypeName == "SC_SRB"))
                                             {
                                                 CurrentIntegrity += block.Integrity;
                                             }
                                         }
-                                    }
-
-                                    //fatblocks
-                                    foreach (var block in subgrid.GetFatBlocks())
-                                    {
-                                        //points
-                                        string id = block?.BlockDefinition?.Id.SubtypeId.ToString();
-                                        if (!string.IsNullOrEmpty(id))
-                                        {
-                                            if (PointCheck.PointValues.ContainsKey(id))
-                                            {
-                                                BattlePoints += PointCheck.PointValues[ id ];
-                                            }
-                                        }
                                         else
                                         {
-
-                                            if (block is IMyGravityGeneratorBase) //2015 blocks, no ID's
-                                            {
-                                                BattlePoints += PointCheck.PointValues.GetValueOrDefault("GravityGenerator" , 0);
-                                            }
-                                            else if (block is IMySmallGatlingGun)
-                                            {
-                                                BattlePoints += PointCheck.PointValues.GetValueOrDefault("SmallGatlingGun" , 0);
-                                            }
-                                            else if (block is IMyLargeGatlingTurret)
-                                            {
-                                                BattlePoints += PointCheck.PointValues.GetValueOrDefault("LargeGatlingTurret" , 0);
-                                            }
-                                            else if (block is IMySmallMissileLauncher)
-                                            {
-                                                BattlePoints += PointCheck.PointValues.GetValueOrDefault("SmallMissileLauncher" , 0);
-                                            }
-                                            else if (block is IMyLargeMissileTurret)
-                                            {
-                                                BattlePoints += PointCheck.PointValues.GetValueOrDefault("LargeMissileTurret" , 0);
-                                            }
+                                            CurrentIntegrity += block.Integrity;
                                         }
+                                    }
+                                }
+
+                                //fatblocks
+                                foreach (var block in subgrid.GetFatBlocks())
+                                {
+                                    //points
+                                    string id = block?.BlockDefinition?.Id.SubtypeId.ToString();
+                                    if (!string.IsNullOrEmpty(id))
+                                    {
+                                        if (PointCheck.PointValues.ContainsKey(id))
+                                        {
+                                            BattlePoints += PointCheck.PointValues[id];
+                                        }
+                                    }
+                                    else
+                                    {
+
+                                        if (block is IMyGravityGeneratorBase) //2015 blocks, no ID's
+                                        {
+                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("GravityGenerator", 0);
+                                        }
+                                        else if (block is IMySmallGatlingGun)
+                                        {
+                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("SmallGatlingGun", 0);
+                                        }
+                                        else if (block is IMyLargeGatlingTurret)
+                                        {
+                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("LargeGatlingTurret", 0);
+                                        }
+                                        else if (block is IMySmallMissileLauncher)
+                                        {
+                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("SmallMissileLauncher", 0);
+                                        }
+                                        else if (block is IMyLargeMissileTurret)
+                                        {
+                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("LargeMissileTurret", 0);
+                                        }
+                                    }
                                     //block counts
                                     if ((PointCheck.PointValues.ContainsKey(id) &&
                                           !(block is IMyTerminalBlock)) ||
@@ -416,15 +416,15 @@ namespace klime.PointCheck
                                             && !(block.BlockDefinition.Id.SubtypeName == "StealthDrive"))
                                     {
 
-                                        var typeID = block.BlockDefinition.Id.TypeId.ToString().Replace("MyObjectBuilder_" , "");
+                                        var typeID = block.BlockDefinition.Id.TypeId.ToString().Replace("MyObjectBuilder_", "");
 
                                         if (SpecialBlockList.ContainsKey(typeID))
                                         {
-                                            SpecialBlockList[ typeID ] += 1;
+                                            SpecialBlockList[typeID] += 1;
                                         }
                                         else if (typeID != "Reactor" && typeID != "Gyro")
                                         {
-                                            SpecialBlockList.Add(typeID , 1);
+                                            SpecialBlockList.Add(typeID, 1);
                                         }
 
                                         //thrust
@@ -446,7 +446,7 @@ namespace klime.PointCheck
 
                                         if (block is IMyGyro)
                                         {
-                                             
+
                                             hasGyro = true;
                                             CurrentGyro += ((MyDefinitionManager.Static.GetDefinition((block as IMyGyro).BlockDefinition) as MyGyroDefinition).ForceMagnitude * (block as IMyGyro).GyroStrengthMultiplier);
                                         }
@@ -479,7 +479,7 @@ namespace klime.PointCheck
                                             !(block is IMyShipGrinder) &&
                                             !(block is IMyThrust) &&
                                             !(block is IMyRadioAntenna) &&
-                                            !(block is IMyUpgradeModule && 
+                                            !(block is IMyUpgradeModule &&
                                             !(block.BlockDefinition.Id.SubtypeName == "BlinkDriveLarge")))
 
 
@@ -734,95 +734,95 @@ namespace klime.PointCheck
                                             multCost = 0.15f;
                                         }
 
-                                        
+
 
                                         if (GunList.ContainsKey(tempName))
                                         {
-                                            GunList[ tempName ] += 1;
+                                            GunList[tempName] += 1;
                                         }
                                         else
                                         {
-                                            GunList.Add(tempName , 1);
+                                            GunList.Add(tempName, 1);
                                         }
 
                                         //MathHelper.RoundToInt(multCost);
-                                        if ((specialCost > 0 || multCost > 0) && GunList[ tempName ] > 1)
+                                        if ((specialCost > 0 || multCost > 0) && GunList[tempName] > 1)
                                         {
-                                            BattlePoints += (int)(PointCheck.PointValues[ id ] * (specialCost + ((GunList[ tempName ] - 1) * multCost))); //Point value of current block being evaluated
+                                            BattlePoints += (int)(PointCheck.PointValues[id] * (specialCost + ((GunList[tempName] - 1) * multCost))); //Point value of current block being evaluated
                                         }
 
 
 
                                     }
 
-                                    }
                                 }
                             }
+                        }
 
 
-                            IMyCubeGrid mainGrid = connectedGrids[ 0 ];
+                        IMyCubeGrid mainGrid = connectedGrids[0];
 
-                            //Owner name
-                            FactionName = "None";
-                            OwnerName = "Unowned";
-                            if (mainGrid.BigOwners != null && mainGrid.BigOwners.Count > 0)
+                        //Owner name
+                        FactionName = "None";
+                        OwnerName = "Unowned";
+                        if (mainGrid.BigOwners != null && mainGrid.BigOwners.Count > 0)
+                        {
+                            OwnerID = mainGrid.BigOwners[0];
+                            Owner = PointCheck.GetOwner(OwnerID);
+                            OwnerName = controller ?? (Owner?.DisplayName ?? GridName);
+
+                            var f = MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(OwnerID);
+                            if (f != null)
                             {
-                                OwnerID = mainGrid.BigOwners[ 0 ];
-                                Owner = PointCheck.GetOwner(OwnerID);
-                                OwnerName = controller ?? (Owner?.DisplayName ?? GridName);
-
-                                var f = MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(OwnerID);
-                                if (f != null)
-                                {
-                                    FactionName = f.Tag ?? "None";
-                                    FactionColor = ColorMaskToRGB(f.CustomColor);
-                                }
+                                FactionName = f.Tag ?? "None";
+                                FactionColor = ColorMaskToRGB(f.CustomColor);
                             }
+                        }
 
-                            //DPS = PointCheck.WC_api.GetConstructEffectiveDps(mainGrid);
+                        //DPS = PointCheck.WC_api.GetConstructEffectiveDps(mainGrid);
 
-                            GridName = Grid.DisplayName;
+                        GridName = Grid.DisplayName;
 
-                            Position = Grid.Physics.CenterOfMassWorld;
+                        Position = Grid.Physics.CenterOfMassWorld;
 
                         IsFunctional = hasPower && hasCockpit && hasGyro;// && hasThrust;
 
-                            //Shield calc for all grids
-                            IMyTerminalBlock shield_block = null;
-                            foreach (var g in connectedGrids)
+                        //Shield calc for all grids
+                        IMyTerminalBlock shield_block = null;
+                        foreach (var g in connectedGrids)
+                        {
+                            if (shield_block == null)
                             {
-                                if (shield_block == null)
-                                {
-                                    shield_block = PointCheck.SH_api.GetShieldBlock(g);
-                                    break;
-                                }
+                                shield_block = PointCheck.SH_api.GetShieldBlock(g);
+                                break;
                             }
-                            if (shield_block != null)
-                            {
-                                TotalShieldStrength = PointCheck.SH_api.GetMaxHpCap(shield_block);
-                                CurrentShieldStrength = PointCheck.SH_api.GetShieldPercent(shield_block);
-                                ShieldHeat = PointCheck.SH_api.GetShieldHeat(shield_block);
-                            }
+                        }
+                        if (shield_block != null)
+                        {
+                            TotalShieldStrength = PointCheck.SH_api.GetMaxHpCap(shield_block);
+                            CurrentShieldStrength = PointCheck.SH_api.GetShieldPercent(shield_block);
+                            ShieldHeat = PointCheck.SH_api.GetShieldHeat(shield_block);
+                        }
 
-                            if (OriginalIntegrity == -1)
-                            {
-                                OriginalIntegrity = CurrentIntegrity;
-                            }
+                        if (OriginalIntegrity == -1)
+                        {
+                            OriginalIntegrity = CurrentIntegrity;
+                        }
 
-                            if (OriginalPower == -1)
-                            {
-                                OriginalPower = CurrentPower;
-                            }
-
+                        if (OriginalPower == -1)
+                        {
+                            OriginalPower = CurrentPower;
                         }
 
                     }
+
                 }
-                catch { }
-            
+            }
+            catch { }
+
         }
 
-            private static Vector3 ColorMaskToRGB(Vector3 colorMask)
+        private static Vector3 ColorMaskToRGB(Vector3 colorMask)
         {
             return MyColorPickerConstants.HSVOffsetToHSV(colorMask).HSVtoColor();
         }
@@ -839,57 +839,63 @@ namespace klime.PointCheck
             try
             {
                 nametag.Message.Clear();
-            if (nametag != null)
-            {
-                var e = MyEntities.GetEntityById(GridID);
-
-                Vector3D pos;
-                if (e != null && e is IMyCubeGrid)
+                if (nametag != null)
                 {
-                    var g = e as IMyCubeGrid;
-                    pos = g.Physics.CenterOfMassWorld;
+                    var e = MyEntities.GetEntityById(GridID);
+
+                    Vector3D pos;
+                    if (e != null && e is IMyCubeGrid)
+                    {
+                        var g = e as IMyCubeGrid;
+                        pos = g.Physics.CenterOfMassWorld;
+                    }
+                    else
+                    {
+                        pos = Position;
+                    }
+
+                    Vector3D targetHudPos = MyAPIGateway.Session.Camera.WorldToScreen(ref pos);
+                    Vector2D newOrigin = new Vector2D(targetHudPos.X, targetHudPos.Y);
+
+
+                    nametag.InitialColor = new Color(FactionColor);
+
+                    Vector3D cameraForward = MyAPIGateway.Session.Camera.WorldMatrix.Forward;
+                    Vector3D toTarget = pos - MyAPIGateway.Session.Camera.WorldMatrix.Translation;
+                    float fov = MyAPIGateway.Session.Camera.FieldOfViewAngle;
+                    var angle = GetAngleBetweenDegree(toTarget, cameraForward);
+
+                    bool stealthed = false;
+                    if (((uint)e.Flags & 0x1000000) > 0)
+                    {
+                        stealthed = true;
+                    }
+                    bool visible = !(newOrigin.X > 1 || newOrigin.X < -1 || newOrigin.Y > 1 || newOrigin.Y < -1) && angle <= fov && !stealthed;
+
+
+                    var distance = Vector3D.Distance(MyAPIGateway.Session.Camera.WorldMatrix.Translation, pos);
+                    nametag.Scale = 1 - MathHelper.Clamp(distance / 20000, 0, 1) + (30 / Math.Max(60, angle * angle * angle));
+                    nametag.Origin = new Vector2D(targetHudPos.X, targetHudPos.Y + (MathHelper.Clamp(-0.000125 * distance + 0.25, 0.05, 0.25)));
+                    nametag.Visible = PointCheck.NameplateVisible && visible;
+
+                    nametag.Message.Clear();
+
+                    if (PointCheck.viewstat == 0 || PointCheck.viewstat == 2)
+                    {
+                        nametag.Message.Append(OwnerName);
+                    }
+                    if (PointCheck.viewstat == 1)
+                    {
+                        nametag.Message.Append(GridName);
+                    }
+                    if (PointCheck.viewstat == 2)
+                    {
+                        nametag.Message.Append("\n" + GridName);
+                    }
+                    nametag.Offset = -nametag.GetTextLength() / 2;
+
                 }
-                else
-                {
-                    pos = Position;
-                }
 
-                Vector3D targetHudPos = MyAPIGateway.Session.Camera.WorldToScreen(ref pos);
-                Vector2D newOrigin = new Vector2D(targetHudPos.X, targetHudPos.Y);
-
-
-                nametag.InitialColor = new Color(FactionColor);
-
-                Vector3D cameraForward = MyAPIGateway.Session.Camera.WorldMatrix.Forward;
-                Vector3D toTarget = pos - MyAPIGateway.Session.Camera.WorldMatrix.Translation;
-                float fov = MyAPIGateway.Session.Camera.FieldOfViewAngle;
-                var angle = GetAngleBetweenDegree(toTarget, cameraForward);
-
-                bool visible = !(newOrigin.X > 1 || newOrigin.X < -1 || newOrigin.Y > 1 || newOrigin.Y < -1) && angle <= fov;
-
-                var distance = Vector3D.Distance(MyAPIGateway.Session.Camera.WorldMatrix.Translation, pos);
-                nametag.Scale = 1 - MathHelper.Clamp(distance / 20000, 0, 1) + (30 / Math.Max(60, angle * angle * angle));
-                nametag.Origin = new Vector2D(targetHudPos.X, targetHudPos.Y + (MathHelper.Clamp(-0.000125 * distance + 0.25, 0.05, 0.25)));
-                nametag.Visible = PointCheck.NameplateVisible && visible;
-
-                nametag.Message.Clear();
-
-                if (PointCheck.viewstat == 0 || PointCheck.viewstat == 2)
-                {
-                    nametag.Message.Append(OwnerName);
-                }
-                if (PointCheck.viewstat == 1)
-                {
-                    nametag.Message.Append(GridName);
-                }
-                if (PointCheck.viewstat == 2)
-                {
-                    nametag.Message.Append("\n" + GridName);
-                }
-                nametag.Offset = -nametag.GetTextLength() / 2;
-
-            }
-            
             }
             catch (Exception)
             {
