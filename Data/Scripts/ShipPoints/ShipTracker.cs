@@ -733,7 +733,11 @@ namespace klime.PointCheck
                                             specialCost = 0f;
                                             multCost = 0.15f;
                                         }
-
+                                        if (tempName == "Flares")
+                                        {
+                                            specialCost = 0f;
+                                            multCost = 0.25f;
+                                        }
 
 
                                         if (GunList.ContainsKey(tempName))

@@ -86,7 +86,7 @@ namespace klime.PointCheck
         public NetSync<int> CaptainCapTimerZ2T1; public NetSync<int> CaptainCapTimerZ2T2; public NetSync<int> CaptainCapTimerZ2T3;
         public NetSync<int> CaptainCapTimerZ3T1; public NetSync<int> CaptainCapTimerZ3T2; public NetSync<int> CaptainCapTimerZ3T3;
         static int Capcolor1 = 0; static int Capcolor2 = 0; static int Capcolor3 = 0;
-        int? NewCountT1 = 0; int? OldCountT1 = 0; int? NewCountT2 = 0; int? OldCountT2 = 0; int? NewCountT3 = 0; int? OldCountT3 = 0; int CapOut = 30;
+        int? NewCountT1 = 0; int? OldCountT1 = 0; int? NewCountT2 = 0; int? OldCountT2 = 0; int? NewCountT3 = 0; int? OldCountT3 = 0; int CapOut = 20;
 
         public enum ViewState { None, InView, InView2, GridSwitch, ExitView };
         ViewState vState = ViewState.None;
@@ -2343,7 +2343,7 @@ namespace klime.PointCheck
             switch (GameModeSwitch.Value)
             {
                 case 1:
-                    CapOut = 30;
+                    CapOut = 20;
                     ctrpoint = new Vector3(0, 0, 0);
                     ctrpoint2 = new Vector3(50000, 0, 0);
                     ctrpoint3 = new Vector3(0, 50000, 0);
@@ -2353,7 +2353,7 @@ namespace klime.PointCheck
 
                     break;
                 case 2:
-                    CapOut = 30;
+                    CapOut = 20;
                     ctrpoint = new Vector3(0, 3500, 0);
                     ctrpoint2 = new Vector3(0, -3500, 0);
                     ctrpoint3 = new Vector3(0, 50000, 0);
@@ -2362,7 +2362,7 @@ namespace klime.PointCheck
                     //MyAPIGateway.Utilities.ShowMessage("GM" , "capdist set to " + capdist);
                     break;
                 case 3:
-                    CapOut = 30;
+                    CapOut = 20;
                     ctrpoint = new Vector3(0, 0, 0);
                     ctrpoint2 = new Vector3(0, 0, 9000);
                     ctrpoint3 = new Vector3(0, 0, -9000);
@@ -2371,7 +2371,7 @@ namespace klime.PointCheck
                     //MyAPIGateway.Utilities.ShowMessage("GM" , "capdist set to " + capdist);
                     break;
                 case 4:
-                    CapOut = 30;
+                    CapOut = 20;
                     ctrpoint = new Vector3(150000, 150000, 150000);
                     ctrpoint2 = new Vector3(150000, 150000, 150000);
                     ctrpoint3 = new Vector3(150000, 150000, 150000);
