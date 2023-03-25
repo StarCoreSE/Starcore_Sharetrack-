@@ -1681,41 +1681,64 @@ namespace klime.PointCheck
                         t_tempteam2 = team2.Value;
                         t_tempteam3 = team3.Value;
                         ServerMatchState.Value = LocalMatchState;
-
-                        bool autotrack = false;
-                        if (autotrack && timer % 60 == 0)
+                        try
                         {
-
-                            if (MyAPIGateway.Session.Player.Controller?.ControlledEntity?.Entity is IMyCockpit)
+                            // Check if auto-tracking is enabled and if the timer is divisible by 60
+                            bool autotrack = true;
+                            if (autotrack && timer % 60 == 0)
                             {
-                                IMyCockpit cockpit = MyAPIGateway.Session.Player.Controller?.ControlledEntity?.Entity as IMyCockpit;
+                                // Check if the player is in a cockpit
+                                var controlledEntity = MyAPIGateway.Session.Player?.Controller?.ControlledEntity?.Entity;
+                                IMyCockpit cockpit = controlledEntity as IMyCockpit;
 
-                                if (!Tracking.Contains(cockpit.CubeGrid.EntityId))
+                                if (cockpit != null)
                                 {
-                                    PacketGridData packet = new PacketGridData
+                                    long entityId = cockpit.CubeGrid.EntityId;
+
+                                    // If the cockpit's grid is not in the tracking list, process it
+                                    if (!Tracking.Contains(entityId))
                                     {
-                                        id = cockpit.CubeGrid.EntityId,
-                                        value = (byte)(Tracking.Contains(cockpit.CubeGrid.EntityId) ? 2 : 1),
-                                    };
-                                    Static.MyNetwork.TransmitToServer(packet, true);
-                                    if (packet.value == 1)
-                                    {
-                                        MyAPIGateway.Utilities.ShowNotification("ShipTracker: Added grid to tracker");
-                                        Tracking.Add(cockpit.CubeGrid.EntityId);
-                                        if (integretyMessage.Visible == false)
+                                        // Create a packet with the grid data
+                                        PacketGridData packet = new PacketGridData
                                         {
-                                            integretyMessage.Visible = true;
+                                            id = entityId,
+                                            value = (byte)(Tracking.Contains(entityId) ? 2 : 1),
+                                        };
+
+                                        // Transmit the packet to the server
+                                        Static.MyNetwork.TransmitToServer(packet, true);
+
+                                        // Process the packet value
+                                        if (packet.value == 1)
+                                        {
+                                            // Add the grid to the tracker
+                                            MyAPIGateway.Utilities.ShowNotification("ShipTracker: Added grid to tracker");
+                                            Tracking.Add(entityId);
+
+                                            // Show the integrity message if it's not visible
+                                            if (!integretyMessage.Visible)
+                                            {
+                                                integretyMessage.Visible = true;
+                                            }
+
+                                            // Create the HUD for the grid
+                                            Data[entityId].CreateHud();
                                         }
-                                        Data[cockpit.CubeGrid.EntityId].CreateHud();
-                                    }
-                                    else
-                                    {
-                                        MyAPIGateway.Utilities.ShowNotification("ShipTracker: Removed grid from tracker");
-                                        Tracking.Remove(cockpit.CubeGrid.EntityId);
-                                        Data[cockpit.CubeGrid.EntityId].DisposeHud();
+                                        else
+                                        {
+                                            // Remove the grid from the tracker
+                                            MyAPIGateway.Utilities.ShowNotification("ShipTracker: Removed grid from tracker");
+                                            Tracking.Remove(entityId);
+
+                                            // Dispose the HUD for the grid
+                                            Data[entityId].DisposeHud();
+                                        }
                                     }
                                 }
                             }
+                        }
+                        catch (Exception AT)
+                        {
                         }
 
                         if (IAmTheCaptainNow)
