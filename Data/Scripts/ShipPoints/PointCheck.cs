@@ -1044,7 +1044,7 @@ internal void UpdateCapZone3()
             try
             {
                 // Run this block of code only if the timer is a multiple of 60 and it's not a dedicated server
-                if (timer % 60 == 0 && !MyAPIGateway.Utilities.IsDedicated)
+                if (timer % 60 == 0)
                 {
                     // Check if _count is a multiple of 100
                     bool tick100 = _count % 100 == 0;
@@ -1067,7 +1067,7 @@ internal void UpdateCapZone3()
                             var grid = entity as MyCubeGrid;
 
                             // If the entity is a valid grid and has the specified block subtype ID, perform the following actions
-                            if (grid != null && GridExtensions.HasBlockWithSubtypeId(grid, "LargeBlockCockpitSeat"))
+                            if (grid != null && GridExtensions.HasBlockWithSubtypeId(grid, "LargeBlockRemoteControl"))
                             {
                                 // Get the entity ID of the grid
                                 long entityId = grid.EntityId;
@@ -1084,6 +1084,7 @@ internal void UpdateCapZone3()
 
                                     // Transmit the packet to the server
                                     Static.MyNetwork.TransmitToServer(packet, true);
+
 
                                     // If the packet value is 1 (indicating the entity is not in the Tracking list), perform the following actions
                                     if (packet.value == 1)
