@@ -588,29 +588,44 @@ namespace klime.PointCheck
         }
         public void AddPointValues(object obj)
         {
+            // Deserialize the byte array (obj) into a string (var)
             string var = MyAPIGateway.Utilities.SerializeFromBinary<string>((byte[])obj);
+
+            // Check if the deserialization was successful
             if (var != null)
             {
+                // Split the string into an array of substrings using the ';' delimiter
                 string[] split = var.Split(';');
+
+                // Iterate through each substring (s) in the split array
                 foreach (string s in split)
                 {
+                    // Split the substring (s) into an array of parts using the '@' delimiter
                     string[] parts = s.Split('@');
                     int value;
+
+                    // Check if there are exactly 2 parts and if the second part is a valid integer (value)
                     if (parts.Length == 2 && int.TryParse(parts[1], out value))
                     {
+                        // Trim the first part (name) and remove any extra whitespaces
                         string name = parts[0].Trim();
-                        if (name.Contains("{LS}"))
-                        {
-                            PointValues.Remove(name.Replace("{LS}", "Large"));
-                            PointValues.Add(name.Replace("{LS}", "Large"), value);
+                        int lsIndex = name.IndexOf("{LS}");
 
-                            PointValues.Remove(name.Replace("{LS}", "Small"));
-                            PointValues.Add(name.Replace("{LS}", "Small"), value);
+                        // Check if the name contains "{LS}"
+                        if (lsIndex != -1)
+                        {
+                            // Replace "{LS}" with "Large" and update the PointValues dictionary
+                            string largeName = name.Substring(0, lsIndex) + "Large" + name.Substring(lsIndex + "{LS}".Length);
+                            PointValues[largeName] = value;
+
+                            // Replace "{LS}" with "Small" and update the PointValues dictionary
+                            string smallName = name.Substring(0, lsIndex) + "Small" + name.Substring(lsIndex + "{LS}".Length);
+                            PointValues[smallName] = value;
                         }
                         else
                         {
-                            PointValues.Remove(name);
-                            PointValues.Add(name, value);
+                            // Update the PointValues dictionary directly
+                            PointValues[name] = value;
                         }
                     }
                 }
@@ -623,28 +638,40 @@ namespace klime.PointCheck
         }
         public override void BeforeStart()
         {
+            // Check if the current instance is not a dedicated server
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
+                // Initialize the sphere entities
                 _sphereEntity = GetSphereEntity();
                 _sphereEntity2 = GetSphereEntity2();
                 _sphereEntity3 = GetSphereEntity3();
-            }
-            if (!MyAPIGateway.Utilities.IsDedicated)
-            {
+
+                // Initialize the text_api with the HUDRegistered callback
                 text_api = new HudAPIv2(HUDRegistered);
             }
+
+            // Initialize the WC_api and load it if it's not null
             WC_api = new WcApi();
             if (WC_api != null)
             {
                 WC_api.Load();
             }
+
+            // Initialize the SH_api and load it if it's not null
             SH_api = new ShieldApi();
             if (SH_api != null)
-            { SH_api.Load(); }
+            {
+                SH_api.Load();
+            }
+
+            // Initialize the RTS_api and load it if it's not null
             RTS_api = new RtsApi();
             if (RTS_api != null)
-            { RTS_api.Load(); }
+            {
+                RTS_api.Load();
+            }
         }
+
         private void HUDRegistered()
         {
             statMessage = new HudAPIv2.HUDMessage(Scale: 1f, Font: "BI_SEOutlined", Message: new StringBuilder(""), Origin: new Vector2D(-.99, .99), HideHud: false, Blend: BlendTypeEnum.PostPP)
@@ -686,112 +713,103 @@ namespace klime.PointCheck
                 //ShadowColor = Color.Black
             };
         }
+        // Get the sphere model based on the given cap color
+        private string GetCapZoneColorModel(int capColor)
+        {
+            switch (capColor)
+            {
+                case 1:
+                    return SphereModelRed;
+                case 2:
+                    return SphereModelBlue;
+                case 3:
+                    return SphereModelOrange;
+                default:
+                    return SphereModel;
+            }
+        }
+
         internal void CapZoneColor1()
         {
             try
             {
-                switch (Capcolor1)
-                {
-                    case 0:
-                        Capsphere1 = SphereModel;
-                        break;
-                    case 1:
-                        Capsphere1 = SphereModelRed;
-                        break;
-                    case 2:
-                        Capsphere1 = SphereModelBlue;
-                        break;
-                    case 3:
-                        Capsphere1 = SphereModelOrange;
-                        break;
-                }
-
+                // Update Capsphere1 based on Capcolor1
+                Capsphere1 = GetCapZoneColorModel(Capcolor1);
             }
-            catch (Exception B1) { MyLog.Default.WriteLineAndConsole($"Visual update failed: " + B1); }
+            catch (Exception B1)
+            {
+                MyLog.Default.WriteLineAndConsole($"Visual update failed: " + B1);
+            }
         }
+
         internal void CapZoneColor2()
         {
             try
             {
-                switch (Capcolor2)
-                {
-                    case 0:
-                        Capsphere2 = SphereModel;
-                        break;
-                    case 1:
-                        Capsphere2 = SphereModelRed;
-                        break;
-                    case 2:
-                        Capsphere2 = SphereModelBlue;
-                        break;
-                    case 3:
-                        Capsphere2 = SphereModelOrange;
-                        break;
-                }
+                // Update Capsphere2 based on Capcolor2
+                Capsphere2 = GetCapZoneColorModel(Capcolor2);
             }
-            catch (Exception B2) { MyLog.Default.WriteLineAndConsole($"Visual update failed: " + B2); }
+            catch (Exception B2)
+            {
+                MyLog.Default.WriteLineAndConsole($"Visual update failed: " + B2);
+            }
         }
+
         internal void CapZoneColor3()
         {
             try
             {
-                switch (Capcolor3)
-                {
-                    case 0:
-                        Capsphere3 = SphereModel;
-                        break;
-                    case 1:
-                        Capsphere3 = SphereModelRed;
-                        break;
-                    case 2:
-                        Capsphere3 = SphereModelBlue;
-                        break;
-                    case 3:
-                        Capsphere3 = SphereModelOrange;
-                        break;
-                }
+                // Update Capsphere3 based on Capcolor3
+                Capsphere3 = GetCapZoneColorModel(Capcolor3);
             }
-            catch (Exception B3) { MyLog.Default.WriteLineAndConsole($"Visual update failed: " + B3); }
+            catch (Exception B3)
+            {
+                MyLog.Default.WriteLineAndConsole($"Visual update failed: " + B3);
+            }
         }
 
 
-        internal void UpdateCapZone1()
-        {
-            try
-            {
-                if (_sphereEntity == null) return;
-                _sphereEntity.Render.Visible = SphereVisual;
-                _sphereEntity.RefreshModels($"{ModContext.ModPath}{Capsphere1}", null);
-                _sphereEntity.Render.RemoveRenderObjects();
-                _sphereEntity.Render.UpdateRenderObject(true);
-            }
-            catch (Exception B1) { MyLog.Default.WriteLineAndConsole($"Updating Capzone 1 failed: " + B1); };
-        }
-        internal void UpdateCapZone2()
-        {
-            try
-            {
-                if (_sphereEntity2 == null) return;
-                _sphereEntity2.Render.Visible = SphereVisual;
-                _sphereEntity2.RefreshModels($"{ModContext.ModPath}{Capsphere2}", null);
-                _sphereEntity2.Render.RemoveRenderObjects();
-                _sphereEntity2.Render.UpdateRenderObject(true);
-            }
-            catch (Exception B2) { MyLog.Default.WriteLineAndConsole($"Updating Capzone 2 failed: " + B2); };
-        }
-        internal void UpdateCapZone3()
-        {
-            try
-            {
-                if (_sphereEntity3 == null) return;
-                _sphereEntity3.Render.Visible = SphereVisual;
-                _sphereEntity3.RefreshModels($"{ModContext.ModPath}{Capsphere3}", null);
-                _sphereEntity3.Render.RemoveRenderObjects();
-                _sphereEntity3.Render.UpdateRenderObject(true);
+       // Update the given sphere entity with the given Capsphere
+private void UpdateCapZone(MyEntity sphereEntity, string Capsphere)
+{
+    try
+    {
+        if (sphereEntity == null) return;
+        
+        // Set the visibility of the sphere entity
+        sphereEntity.Render.Visible = SphereVisual;
+        
+        // Refresh the model of the sphere entity
+        sphereEntity.RefreshModels($"{ModContext.ModPath}{Capsphere}", null);
+        
+        // Remove and update the render object
+        sphereEntity.Render.RemoveRenderObjects();
+        sphereEntity.Render.UpdateRenderObject(true);
+    }
+    catch (Exception ex)
+    {
+        MyLog.Default.WriteLineAndConsole($"Updating Capzone failed: " + ex);
+    }
+}
 
-            }
-            catch (Exception B3) { MyLog.Default.WriteLineAndConsole($"Updating Capzone 3 failed: " + B3); };
-        }
+internal void UpdateCapZone1()
+{
+    // Update the first cap zone
+    UpdateCapZone(_sphereEntity, Capsphere1);
+}
+
+internal void UpdateCapZone2()
+{
+    // Update the second cap zone
+    UpdateCapZone(_sphereEntity2, Capsphere2);
+}
+
+internal void UpdateCapZone3()
+{
+    // Update the third cap zone
+    UpdateCapZone(_sphereEntity3, Capsphere3);
+}
+
         public override void UpdateAfterSimulation()
         {
 
@@ -860,9 +878,6 @@ namespace klime.PointCheck
                             _fastStart = timer;
                             if (joinInit == false)
                             {
-                                try
-                                {
-                                    //causing issues?
                                     Static.MyNetwork.TransmitToServer(new BasicPacket(7), true, true);
 
                                     ServerMatchState.Fetch();
@@ -877,11 +892,7 @@ namespace klime.PointCheck
                                     GameModeSwitch.Fetch();
                                     Local_GameModeSwitch = GameModeSwitch.Value;
                                     joinInit = true;
-                                }
-                                catch (Exception i2)
-                                {
-                                    //MyLog.Default.WriteLineAndConsole($"Multiplayer sync failed: " + i2);
-                                }
+                                
                             }
 
                         }
@@ -1022,8 +1033,7 @@ namespace klime.PointCheck
                             var grid = entity as MyCubeGrid;
 
                             // If the entity is a valid grid and has the specified block subtype ID, perform the following actions
-                            if (grid != null && grid.Physics != null && !grid.Physics.IsPhantom && !grid.IsPreview && !grid.MarkedForClose && grid.InScene &&
-                                GridExtensions.HasBlockWithSubtypeId(grid, "RivalAIRemoteControlLarge"))
+                            if (grid != null && GridExtensions.HasBlockWithSubtypeId(grid, "LargeBlockRemoteControl"))
                             {
                                 // Get the entity ID of the grid
                                 long entityId = grid.EntityId;
