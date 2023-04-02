@@ -88,6 +88,13 @@ namespace klime.PointCheck
         static int Capcolor1 = 0; static int Capcolor2 = 0; static int Capcolor3 = 0;
         int? NewCountT1 = 0; int? OldCountT1 = 0; int? NewCountT2 = 0; int? OldCountT2 = 0; int? NewCountT3 = 0; int? OldCountT3 = 0; int CapOut = 20;
 
+
+        private readonly List<MyEntity> _managedEntities = new List<MyEntity>(1000);
+        private int _count;
+        private const double CombatRadius = 12500;
+        private BoundingSphereD _combatMinSphere = new BoundingSphereD(Vector3D.Zero, CombatRadius);
+        private BoundingSphereD _combatMaxSphere = new BoundingSphereD(Vector3D.Zero, CombatRadius + 22500);
+
         public enum ViewState { None, InView, InView2, GridSwitch, ExitView };
         ViewState vState = ViewState.None;
         HudAPIv2 text_api;
@@ -926,44 +933,61 @@ namespace klime.PointCheck
             catch { }
             try
             {
+                // Execute this block of code only if the timer is a multiple of 60
                 if (timer % 60 == 0)
                 {
+                    // Clear the players lists and populate the all_players dictionary in one loop
                     all_players.Clear();
-                    listPlayers.Clear();
-                    MyAPIGateway.Multiplayer.Players.GetPlayers(listPlayers);
-                    foreach (var p in listPlayers) { all_players.Add(p.IdentityId, p); }
+                    MyAPIGateway.Multiplayer.Players.GetPlayers(listPlayers, p =>
+                    {
+                        all_players.Add(p.IdentityId, p);
+                        return false;
+                    });
+
+                    // Execute this block of code only if it's a server
                     if (MyAPIGateway.Session.IsServer)
                     {
+                        // Iterate through each entity ID (x) in the Sending dictionary
                         foreach (var x in Sending.Keys)
                         {
-                            if (!Data.ContainsKey(x))
+                            ShipTracker shipTracker;
+                            if (!Data.TryGetValue(x, out shipTracker))
                             {
-                                var e = MyEntities.GetEntityById(x);
-                                if (e != null && e is IMyCubeGrid && e.Physics != null)
+                                // Get the entity with the entity ID (x) and check if it's a valid grid with physics
+                                var e = MyEntities.GetEntityById(x) as IMyCubeGrid;
+                                if (e != null && e.Physics != null)
                                 {
-                                    Data.Add(x, new ShipTracker(e as IMyCubeGrid));
+                                    shipTracker = new ShipTracker(e);
+                                    Data.Add(x, shipTracker);
+
+                                    // If it's not a dedicated server, create a HUD for the grid
                                     if (!MyAPIGateway.Utilities.IsDedicated)
                                     {
-                                        Data[x].CreateHud();
+                                        shipTracker.CreateHud();
                                     }
-                                }
-                                else
-                                {
-                                    continue;
                                 }
                             }
                             else
                             {
-                                Data[x].Update();
+                                // Update the ShipTracker for the entity ID (x)
+                                shipTracker.Update();
                             }
-                            foreach (var p in Sending[x])
+
+                            if (shipTracker != null)
                             {
-                                PacketGridData packet = new PacketGridData
+                                // Iterate through each player ID (p) in the Sending dictionary for the entity ID (x)
+                                foreach (var p in Sending[x])
                                 {
-                                    id = x,
-                                    tracked = Data[x]
-                                };
-                                Static.MyNetwork.TransmitToPlayer(packet, p);
+                                    // Create a new packet with the entity ID and its ShipTracker
+                                    PacketGridData packet = new PacketGridData
+                                    {
+                                        id = x,
+                                        tracked = shipTracker
+                                    };
+
+                                    // Transmit the packet to the player with player ID (p)
+                                    Static.MyNetwork.TransmitToPlayer(packet, p);
+                                }
                             }
                         }
                     }
@@ -972,6 +996,89 @@ namespace klime.PointCheck
             catch
             {
             }
+            try
+            {
+                // Run this block of code only if the timer is a multiple of 60 and it's not a dedicated server
+                if (timer % 60 == 0 && !MyAPIGateway.Utilities.IsDedicated)
+                {
+                    // Check if _count is a multiple of 100
+                    bool tick100 = _count % 100 == 0;
+                    _count++;
+
+                    // Run this block of code if (_count - _fastStart) is less than 300 or _count is a multiple of 100
+                    if (_count - _fastStart < 300 || tick100)
+                    {
+                        // Clear the managed entities list
+                        _managedEntities.Clear();
+
+                        // Get all top-most entities in a sphere (_combatMaxSphere) and store them in _managedEntities
+                        MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref _combatMaxSphere, _managedEntities, MyEntityQueryType.Dynamic);
+                        var posZero = Vector3D.Zero;
+
+                        // Iterate through each entity in the _managedEntities list
+                        foreach (var entity in _managedEntities)
+                        {
+                            // Check if the entity is a grid
+                            var grid = entity as MyCubeGrid;
+
+                            // If the entity is a valid grid and has the specified block subtype ID, perform the following actions
+                            if (grid != null && grid.Physics != null && !grid.Physics.IsPhantom && !grid.IsPreview && !grid.MarkedForClose && grid.InScene &&
+                                GridExtensions.HasBlockWithSubtypeId(grid, "RivalAIRemoteControlLarge"))
+                            {
+                                // Get the entity ID of the grid
+                                long entityId = grid.EntityId;
+
+                                // If the entity ID is not present in the Tracking list, perform the following actions
+                                if (!Tracking.Contains(entityId))
+                                {
+                                    // Create a new packet with the entity ID and a value indicating whether the entity is in the Tracking list
+                                    PacketGridData packet = new PacketGridData
+                                    {
+                                        id = entityId,
+                                        value = (byte)(Tracking.Contains(entityId) ? 2 : 1),
+                                    };
+
+                                    // Transmit the packet to the server
+                                    Static.MyNetwork.TransmitToServer(packet, true);
+
+                                    // If the packet value is 1 (indicating the entity is not in the Tracking list), perform the following actions
+                                    if (packet.value == 1)
+                                    {
+                                        // Show a notification that the grid was added to the tracker
+                                        MyAPIGateway.Utilities.ShowNotification("ShipTracker: Added grid to tracker");
+
+                                        // Add the entity ID to the Tracking list
+                                        Tracking.Add(entityId);
+
+                                        // Make the integrity message visible if it's not already visible
+                                        if (!integretyMessage.Visible)
+                                        {
+                                            integretyMessage.Visible = true;
+                                        }
+
+                                        // Create the HUD for the grid
+                                        Data[entityId].CreateHud();
+                                    }
+                                    else
+                                    {
+                                        // Show a notification that the grid was removed from the tracker
+                                        MyAPIGateway.Utilities.ShowNotification("ShipTracker: Removed grid from tracker");
+
+                                        // Remove the entity ID from the Tracking list
+                                        Tracking.Remove(entityId);
+
+                                        // Dispose the HUD for the grid
+                                        Data[entityId].DisposeHud();
+                                    }
+                                }
+                                // Update _fastStart to the current value of _count
+                                _fastStart = _count;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
         }
         public override void Draw()
         { //if you are the server do nothing here
@@ -1688,9 +1795,11 @@ namespace klime.PointCheck
                             if (autotrack && timer % 60 == 0)
                             {
                                 // Check if the player is in a cockpit
+
                                 var controlledEntity = MyAPIGateway.Session.Player?.Controller?.ControlledEntity?.Entity;
                                 IMyCockpit cockpit = controlledEntity as IMyCockpit;
 
+                                
                                 if (cockpit != null)
                                 {
                                     long entityId = cockpit.CubeGrid.EntityId;
@@ -2479,6 +2588,9 @@ namespace klime.PointCheck
             return null;
         }
 
+
+        
+
         public static Vector3 CrazyKing()
         {
             int randombracketlow = -3000, randombrackethigh = 3000;
@@ -2531,4 +2643,26 @@ namespace klime.PointCheck
             MyAPIGateway.Utilities.UnregisterMessageHandler(2546247, AddPointValues);
         }
     }
+
+    public static class GridExtensions
+    {
+        public static bool HasBlockWithSubtypeId(this IMyCubeGrid grid, string subtypeId)
+        {
+            bool found = false;
+
+            grid.GetBlocks(null, delegate (IMySlimBlock block)
+            {
+                if (block.FatBlock != null && block.BlockDefinition.Id.SubtypeName == subtypeId)
+                {
+                    found = true;
+                    return false; // Stop the GetBlocks iteration once a matching block is found
+                }
+                return false;
+            });
+
+            return found;
+        }
+    }
+
+
 }
