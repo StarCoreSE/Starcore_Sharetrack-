@@ -1067,7 +1067,7 @@ internal void UpdateCapZone3()
                             var grid = entity as MyCubeGrid;
 
                             // If the entity is a valid grid and has the specified block subtype ID, perform the following actions
-                            if (grid != null && GridExtensions.HasBlockWithSubtypeId(grid, "LargeBlockRemoteControl"))
+                            if (grid != null && GridExtensions.HasBlockWithSubtypeId(grid, "RivalAIRemoteControlLarge"))
                             {
                                 // Get the entity ID of the grid
                                 long entityId = grid.EntityId;
