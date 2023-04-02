@@ -230,39 +230,54 @@ namespace klime.PointCheck
         //end visual
         public override void Init(MyObjectBuilder_SessionComponent sessionComponent)
         {
-            MyAPIGateway.Utilities.MessageEntered += MessageEntered; MyNetworkHandler.Init();
+            MyAPIGateway.Utilities.MessageEntered += MessageEntered;
+            MyNetworkHandler.Init();
             MyAPIGateway.Utilities.ShowMessage("ShipPoints v3.2 - Control Zone", "Aim at a grid and press Shift+T to show stats, Shift+M to track a grid, Shift+J to cycle nametag style. Type '/sphere' to turn off/on the sphere visuals.");
-            if (!NetworkAPI.IsInitialized) { NetworkAPI.Init(ComId, DisplayName, Keyword); } // initialize 
 
-            CaptainCapTimerZ1T1 = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            CaptainCapTimerZ1T2 = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            CaptainCapTimerZ1T3 = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            CaptainCapTimerZ2T1 = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            CaptainCapTimerZ2T2 = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            CaptainCapTimerZ2T3 = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            CaptainCapTimerZ3T1 = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            CaptainCapTimerZ3T2 = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            CaptainCapTimerZ3T3 = new NetSync<int>(this, TransferType.Both, 0, false, false);
+            if (!NetworkAPI.IsInitialized)
+            {
+                NetworkAPI.Init(ComId, DisplayName, Keyword);
+            }
 
-            Team1Tickets = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            Team2Tickets = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            Team3Tickets = new NetSync<int>(this, TransferType.Both, 0, false, false);
+            InitializeNetSyncVariables();
 
-            team1 = new NetSync<string>(this, TransferType.Both, "RED", false, false);
-            team2 = new NetSync<string>(this, TransferType.Both, "BLU", false, false);
-            team3 = new NetSync<string>(this, TransferType.Both, "GRE", false, false);
-
-            ServerMatchState = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            ServerSyncTimer = new NetSync<int>(this, TransferType.Both, 0, false, false);
             _alertAudio = new MyEntity3DSoundEmitter(null, false, 1f);
-
-            ThreeTeams = new NetSync<int>(this, TransferType.Both, 0, false, false);
-            GameModeSwitch = new NetSync<int>(this, TransferType.Both, 3, false, false);
-
-
-            CaptainRandVector3D = new NetSync<Vector3D>(this, TransferType.Both, ClientRandVector3D, false, false);
-
         }
+
+        private void InitializeNetSyncVariables()
+        {
+            CaptainCapTimerZ1T1 = CreateNetSync<int>(0);
+            CaptainCapTimerZ1T2 = CreateNetSync<int>(0);
+            CaptainCapTimerZ1T3 = CreateNetSync<int>(0);
+            CaptainCapTimerZ2T1 = CreateNetSync<int>(0);
+            CaptainCapTimerZ2T2 = CreateNetSync<int>(0);
+            CaptainCapTimerZ2T3 = CreateNetSync<int>(0);
+            CaptainCapTimerZ3T1 = CreateNetSync<int>(0);
+            CaptainCapTimerZ3T2 = CreateNetSync<int>(0);
+            CaptainCapTimerZ3T3 = CreateNetSync<int>(0);
+
+            Team1Tickets = CreateNetSync<int>(0);
+            Team2Tickets = CreateNetSync<int>(0);
+            Team3Tickets = CreateNetSync<int>(0);
+
+            team1 = CreateNetSync<string>("RED");
+            team2 = CreateNetSync<string>("BLU");
+            team3 = CreateNetSync<string>("GRE");
+
+            ServerMatchState = CreateNetSync<int>(0);
+            ServerSyncTimer = CreateNetSync<int>(0);
+
+            ThreeTeams = CreateNetSync<int>(0);
+            GameModeSwitch = CreateNetSync<int>(3);
+
+            CaptainRandVector3D = CreateNetSync<Vector3D>(ClientRandVector3D);
+        }
+
+        private NetSync<T> CreateNetSync<T>(T defaultValue)
+        {
+            return new NetSync<T>(this, TransferType.Both, defaultValue, false, false);
+        }
+
         private void MessageEntered(string messageText, ref bool sendToOthers)
         {
             if (messageText.Contains("/setgps"))
@@ -546,37 +561,56 @@ namespace klime.PointCheck
             {
                 if (broadcaststat && MyAPIGateway.Session.Player.Controller?.ControlledEntity?.Entity is IMyCockpit)
                 {
+                    // Clear tracking and sending lists
                     Tracking.Clear();
                     Sending.Clear();
-                    IMyCockpit cockpit = MyAPIGateway.Session.Player.Controller?.ControlledEntity?.Entity as IMyCockpit;
-                    Data[cockpit.CubeGrid.EntityId].DisposeHud();
-                    PacketGridData packet = new PacketGridData { id = cockpit.CubeGrid.EntityId, value = (byte)(Tracking.Contains(cockpit.CubeGrid.EntityId) ? 2 : 1), };
-                    Static.MyNetwork.TransmitToServer(packet, true, true);
-                    bool re_Tracked = false;
-                    if (packet.value == 1)
-                    {
-                        Tracking.Add(cockpit.CubeGrid.EntityId);
-                        if (integretyMessage.Visible == false)
-                        {
-                            integretyMessage.Visible = true;
-                        }
-                        Data[cockpit.CubeGrid.EntityId].CreateHud();
-                    }
-                    else
-                    {
-                        Tracking.Remove(cockpit.CubeGrid.EntityId);
-                        Data[cockpit.CubeGrid.EntityId].DisposeHud();
-                        if (integretyMessage.Visible == true) { integretyMessage.Visible = false; }
-                        re_Tracked = true;
 
-                        if (re_Tracked)
+                    // Get the controlled cockpit
+                    IMyCockpit cockpit = MyAPIGateway.Session.Player.Controller?.ControlledEntity?.Entity as IMyCockpit;
+
+                    // Check if the grid data exists
+                    if (Data.ContainsKey(cockpit.CubeGrid.EntityId))
+                    {
+                        // Dispose the current HUD
+                        Data[cockpit.CubeGrid.EntityId].DisposeHud();
+
+                        // Create a packet for the grid data
+                        PacketGridData packet = new PacketGridData
                         {
-                            PacketGridData packet_B = new PacketGridData { id = cockpit.CubeGrid.EntityId, value = (byte)(Tracking.Contains(cockpit.CubeGrid.EntityId) ? 2 : 1), };
+                            id = cockpit.CubeGrid.EntityId,
+                            value = (byte)(Tracking.Contains(cockpit.CubeGrid.EntityId) ? 2 : 1),
+                        };
+
+                        // Transmit the packet to the server
+                        Static.MyNetwork.TransmitToServer(packet, true, true);
+
+                        // Update tracking and HUD based on the packet value
+                        if (packet.value == 1)
+                        {
+                            Tracking.Add(cockpit.CubeGrid.EntityId);
+                            integretyMessage.Visible = true;
+                            Data[cockpit.CubeGrid.EntityId].CreateHud();
+                        }
+                        else
+                        {
+                            Tracking.Remove(cockpit.CubeGrid.EntityId);
+                            Data[cockpit.CubeGrid.EntityId].DisposeHud();
+                            integretyMessage.Visible = false;
+
+                            // Create another packet to re-track if necessary
+                            PacketGridData packet_B = new PacketGridData
+                            {
+                                id = cockpit.CubeGrid.EntityId,
+                                value = (byte)(Tracking.Contains(cockpit.CubeGrid.EntityId) ? 2 : 1),
+                            };
+
+                            // Transmit the packet to the server
                             Static.MyNetwork.TransmitToServer(packet_B, true, false);
+
                             if (packet_B.value == 1)
                             {
                                 Tracking.Add(cockpit.CubeGrid.EntityId);
-                                if (integretyMessage.Visible == false) { integretyMessage.Visible = true; }
+                                integretyMessage.Visible = true;
                                 Data[cockpit.CubeGrid.EntityId].CreateHud();
                             }
                         }
@@ -584,8 +618,8 @@ namespace klime.PointCheck
                 }
             }
             catch { }
-
         }
+
         public void AddPointValues(object obj)
         {
             // Deserialize the byte array (obj) into a string (var)
@@ -1033,7 +1067,7 @@ internal void UpdateCapZone3()
                             var grid = entity as MyCubeGrid;
 
                             // If the entity is a valid grid and has the specified block subtype ID, perform the following actions
-                            if (grid != null && GridExtensions.HasBlockWithSubtypeId(grid, "LargeBlockRemoteControl"))
+                            if (grid != null && GridExtensions.HasBlockWithSubtypeId(grid, "LargeBlockCockpitSeat"))
                             {
                                 // Get the entity ID of the grid
                                 long entityId = grid.EntityId;
