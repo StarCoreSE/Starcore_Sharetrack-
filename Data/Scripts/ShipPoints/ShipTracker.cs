@@ -672,7 +672,7 @@ namespace klime.PointCheck
                                             specialCost = 0f;
                                             multCost = 0f;
                                         }
-                                        if (tempName == "Grimlock")
+                                        if (tempName == "Grimlock Launcher")
                                         {
                                             specialCost = 0f;
                                             multCost = 0.15f;
