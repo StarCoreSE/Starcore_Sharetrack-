@@ -145,7 +145,7 @@ namespace klime.PointCheck
                                         }
                                     }
                                     //tank block workarounds
-                                    if (block.FatBlock is IMyOxygenTank)
+                                    if (block.FatBlock is IMyGasTank)
                                     {
                                         //BattlePoints += 20; //flat Point cost for mass blocks
 
