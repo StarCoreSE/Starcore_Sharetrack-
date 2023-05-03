@@ -1836,7 +1836,7 @@ internal void UpdateCapZone3()
                         try
                         {
                             // Check if auto-tracking is enabled and if the timer is divisible by 60
-                            bool autotrack = false;
+                            bool autotrack = true;
                             if (autotrack && timer % 60 == 0)
                             {
                                 // Check if the player is in a cockpit
