@@ -429,6 +429,7 @@ namespace klime.PointCheck
             {
                 IAmTheCaptainNow = false;
                 MyAPIGateway.Utilities.ShowMessage("GM", "You are not the captain now.");
+
             }
 
             if (messageText.Contains("/t1t"))
@@ -910,11 +911,9 @@ internal void UpdateCapZone3()
 
                 _managedBntities.Clear();
                 BoundingSphereD sph = new BoundingSphereD(Vector3D.Zero, 22500);
+                MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sph, _managedBntities);
 
-                List<MyEntity> entities = new List<MyEntity>();
-                MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sph, entities);
-
-                foreach (var entity in entities)
+                foreach (var entity in _managedBntities)
                 {
                     MyCubeGrid grid = entity as MyCubeGrid;
                     if (grid != null)
@@ -922,7 +921,6 @@ internal void UpdateCapZone3()
                         if (grid.DisplayName == "blocker")
                         {
                             grid.Physics.Enabled = false;
-                            MyAPIGateway.Utilities.ShowMessage("", $"Ghosted: {grid.DisplayName}");
                         }
                     }
                 }
