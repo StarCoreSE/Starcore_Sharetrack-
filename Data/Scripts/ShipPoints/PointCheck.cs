@@ -23,6 +23,7 @@ using VRageMath;
 using WeaponCore.Api;
 using static Math0424.Networking.MyNetworkHandler;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
+using VRage.Noise.Patterns;
 
 namespace klime.PointCheck
 {
@@ -87,6 +88,9 @@ namespace klime.PointCheck
         public NetSync<int> CaptainCapTimerZ3T1; public NetSync<int> CaptainCapTimerZ3T2; public NetSync<int> CaptainCapTimerZ3T3;
         static int Capcolor1 = 0; static int Capcolor2 = 0; static int Capcolor3 = 0;
         int? NewCountT1 = 0; int? OldCountT1 = 0; int? NewCountT2 = 0; int? OldCountT2 = 0; int? NewCountT3 = 0; int? OldCountT3 = 0; int CapOut = 20;
+
+        private readonly List<MyEntity> _managedBntities = new List<MyEntity>(1000);
+
 
 
         private readonly List<MyEntity> _managedEntities = new List<MyEntity>(1000);
@@ -898,6 +902,35 @@ internal void UpdateCapZone3()
                 timer = ServerSyncTimer.Value;
                 temp_LocalTimer = 0;
             }
+
+
+            if (timer % 60 == 0)
+            try
+            {
+
+                _managedBntities.Clear();
+                BoundingSphereD sph = new BoundingSphereD(Vector3D.Zero, 22500);
+
+                List<MyEntity> entities = new List<MyEntity>();
+                MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sph, entities);
+
+                foreach (var entity in entities)
+                {
+                    MyCubeGrid grid = entity as MyCubeGrid;
+                    if (grid != null)
+                    {
+                        if (grid.DisplayName == "blocker")
+                        {
+                            grid.Physics.Enabled = false;
+                            MyAPIGateway.Utilities.ShowMessage("", $"Ghosted: {grid.DisplayName}");
+                        }
+                    }
+                }
+            }
+            catch
+            {}
+
+
 
             try
             {
