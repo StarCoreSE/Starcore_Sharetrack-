@@ -66,6 +66,12 @@ namespace klime.PointCheck
         [ProtoMember(25)] public float CurrentPower;
         [ProtoMember(26)] public Dictionary<string, int> SBL = new Dictionary<string, int>();
         [ProtoMember(27)] public float CurrentGyro;
+
+        [ProtoMember(28)] public float movementPercentage;
+        [ProtoMember(29)] public float powerPercentage;
+        [ProtoMember(30)] public float offensivePercentage;
+        [ProtoMember(31)] public float miscPercentage;
+
         public ShipTracker() { }
 
         public ShipTracker(IMyCubeGrid grid)
@@ -112,7 +118,7 @@ namespace klime.PointCheck
                     {
                         Mass = (Grid as MyCubeGrid).GetCurrentMass();
                         bool hasPower = false, hasCockpit = false, hasThrust = false, hasGyro = false;
-
+                        float movementBpts = 0, powerBpts = 0, offensiveBpts = 0, MiscBpts = 0; // new counters
                         string controller = null;
 
                         foreach (var grid in connectedGrids)
@@ -229,6 +235,21 @@ namespace klime.PointCheck
                                             CurrentIntegrity += block.Integrity;
                                         }
                                     }
+
+
+                                    if (block.FatBlock is IMyThrust || block.FatBlock is IMyGyro)
+                                    {
+                                        movementBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                    }
+                                    else if (block.FatBlock is IMyReactor || block.FatBlock is IMyBatteryBlock)
+                                    {
+                                        powerBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                    }
+                                    else
+                                    {
+                                        offensiveBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                    }
+
                                 }
 
                                 foreach (var b in subgrid.GetFatBlocks())
@@ -444,10 +465,35 @@ namespace klime.PointCheck
                                             Bpts += (int)(PointCheck.PointValues[id] * (sCs + ((GunL[t_N] - 1) * mCs)));
                                         }
                                     }
+                                    if (b is IMyThrust || b is IMyGyro)
+                                    {
+                                        movementBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                    }
+                                    else if (b is IMyReactor || b is IMyBatteryBlock)
+                                    {
+                                        powerBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                    }
+                                    else
+                                    {
+                                        offensiveBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                    }
+                                  //  else
+                                  //  {
+                                  //      MiscBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                   // }
 
                                 }
                             }
                         }
+                        // calculate percentage of Bpts for each block type
+                        float totalBpts = movementBpts + powerBpts + offensiveBpts + MiscBpts;
+                         movementPercentage = (float)Math.Round((movementBpts / totalBpts) * 100, 0);
+                         powerPercentage = (float)Math.Round((powerBpts / totalBpts) * 100, 0);
+                         offensivePercentage = (float)Math.Round((offensiveBpts / totalBpts) * 100, 0);
+                         //miscPercentage = (float)Math.Round((offensiveBpts / totalBpts) * 100, 0);
+
+
+
 
                         IMyCubeGrid mainGrid = connectedGrids[0];
                         FactionName = "None";

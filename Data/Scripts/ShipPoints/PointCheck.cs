@@ -1323,6 +1323,14 @@ internal void UpdateCapZone3()
                                     {
                                         speed = (float)Math.Round(RTS_api.GetMaxSpeed(icubeG), 2);
                                     }
+                                    string PWRNotation;
+
+                                    PWRNotation = tracked.CurrentPower > 1000 ? "GW" : "MW";
+                                    string tempPWR;
+                                    if (tracked.CurrentPower > 1000)
+                                    { tempPWR = (Math.Round(tracked.CurrentPower / 1000, 1)).ToString(); }
+                                    else { tempPWR = tracked.CurrentPower.ToString(); }
+                                    string PWR = tempPWR + PWRNotation;
 
                                     string GyroString = tracked.CurrentGyro.ToString();
                                     double tempGyro2;
@@ -1347,10 +1355,21 @@ internal void UpdateCapZone3()
                                             + "\n" + "<color=Green>Max Speed<color=White>: " + speed
                                             + "\n"
                                             + "\n" + "<color=Orange>----Battle Stats----"
-                                            + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
+
+                                            + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString() 
+                                            + " (<color=Red> " + tracked.offensivePercentage.ToString() 
+                                            + "<color=White>% | <color=Green>" 
+                                            + tracked.powerPercentage.ToString() 
+                                            + "<color=White>% | <color=DeepSkyBlue>" 
+                                            + tracked.movementPercentage.ToString() 
+                                            //+ "<color=White>% | <color=LightGray>" 
+                                            //+ tracked.miscPercentage.ToString() 
+                                            + "<color=White>% )"
+
                                             + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                             + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
                                             + "\n" + "<color=Green>Gyro<color=White>: " + GyroString + "N"
+                                            + "\n" + "<color=Green>Power<color=White>: " + PWR
                                             + "\n"
                                             + "\n" + "<color=Orange>----Blocks----"
                                             + "\n" + specialBlockText
@@ -1416,6 +1435,14 @@ internal void UpdateCapZone3()
                                 {
                                     speed = (float)Math.Round(RTS_api.GetMaxSpeed(icubeG), 2);
                                 }
+                                string PWRNotation;
+
+                                PWRNotation = tracked.CurrentPower > 1000 ? "GW" : "MW";
+                                string tempPWR;
+                                if (tracked.CurrentPower > 1000)
+                                { tempPWR = (Math.Round(tracked.CurrentPower / 1000, 1)).ToString(); }
+                                else { tempPWR = tracked.CurrentPower.ToString(); }
+                                string PWR = tempPWR + PWRNotation;
 
                                 string GyroString = tracked.CurrentGyro.ToString();
                                 double tempGyro2;
@@ -1444,6 +1471,8 @@ internal void UpdateCapZone3()
                                         + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                         + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
                                         + "\n" + "<color=Green>Gyro<color=White>: " + GyroString + "N"
+                                        + "\n" + "<color=Green>Power<color=White>: " + PWR
+
                                         + "\n"
                                         + "\n" + "<color=Orange>----Blocks----"
                                         + "\n" + specialBlockText
