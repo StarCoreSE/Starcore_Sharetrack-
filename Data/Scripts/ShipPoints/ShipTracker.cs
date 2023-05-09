@@ -44,7 +44,7 @@ namespace klime.PointCheck
         [ProtoMember(3)] public int LastUpdate;
         [ProtoMember(4)] public long GridID;
         [ProtoMember(5)] public long OwnerID;
-        [ProtoMember(6)] public int BattlePoints;
+        [ProtoMember(6)] public int Bpts;
         [ProtoMember(7)] public float InstalledThrust;
         [ProtoMember(8)] public float Mass;
         [ProtoMember(9)] public float Heavyblocks;
@@ -53,7 +53,7 @@ namespace klime.PointCheck
         [ProtoMember(12)] public float CurrentShieldStrength;
         [ProtoMember(13)] public int PCU;
         //[ProtoMember(14)] public float DPS;
-        [ProtoMember(16)] public Dictionary<string, int> GunList = new Dictionary<string, int>();
+        [ProtoMember(16)] public Dictionary<string, int> GunL = new Dictionary<string, int>();
 
         [ProtoMember(17)] public string OwnerName;
         [ProtoMember(18)] public bool IsFunctional = false;
@@ -64,7 +64,7 @@ namespace klime.PointCheck
         [ProtoMember(23)] public Vector3 FactionColor = Vector3.One;
         [ProtoMember(24)] public float OriginalPower = -1;
         [ProtoMember(25)] public float CurrentPower;
-        [ProtoMember(26)] public Dictionary<string, int> SpecialBlockList = new Dictionary<string, int>();
+        [ProtoMember(26)] public Dictionary<string, int> SBL = new Dictionary<string, int>();
         [ProtoMember(27)] public float CurrentGyro;
         public ShipTracker() { }
 
@@ -99,7 +99,6 @@ namespace klime.PointCheck
                 if (slim?.CubeGrid == null || slim.IsDestroyed || slim.FatBlock == null)
                     continue;
             }
-            //LastUpdate = MyUtils.GetRandomInt(MyUtils.GetRandomInt(1 , 4), MyUtils.GetRandomInt(5 , 10));
             LastUpdate = 5;
             try
             {
@@ -127,674 +126,360 @@ namespace klime.PointCheck
 
                                 tmpBlocks.Clear();
                                 grid.GetBlocks(tmpBlocks);
+
                                 foreach (var block in tmpBlocks)
                                 {
+                                    string subtype = block.BlockDefinition?.Id.SubtypeName;
+                                    string id = "";
 
                                     if (block.FatBlock is IMyOxygenGenerator)
                                     {
-                                        //BattlePoints += 20; //flat Point cost for mass blocks
-
-                                        string h2o2ID = "H2O2Generator";
-                                        if (SpecialBlockList.ContainsKey(h2o2ID))
-                                        {
-                                            SpecialBlockList[h2o2ID] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(h2o2ID, 1);
-                                        }
+                                        id = "H2O2Generator";
                                     }
-                                    //tank block workarounds
-                                    if (block.FatBlock is IMyGasTank)
+                                    else if (block.FatBlock is IMyGasTank)
                                     {
-                                        //BattlePoints += 20; //flat Point cost for mass blocks
-
-                                        string tankID = "HydrogenTank";
-                                        if (SpecialBlockList.ContainsKey(tankID))
-                                        {
-                                            SpecialBlockList[tankID] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(tankID, 1);
-                                        }
+                                        id = "HydrogenTank";
                                     }
-                                    string subtype = block.BlockDefinition.Id.SubtypeName;
-
-                                    if (block.FatBlock is IMyMotorStator && subtype == "SubgridBase")
+                                    else if (block.FatBlock is IMyMotorStator && subtype == "SubgridBase")
                                     {
-                                        //BattlePoints += 20; //flat Point cost for mass blocks
-
-                                        string invID = "Invincible Subgrid";
-                                        if (SpecialBlockList.ContainsKey(invID))
-                                        {
-                                            SpecialBlockList[invID] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(invID, 1);
-                                        }
+                                        id = "Invincible Subgrid";
                                     }
-
-                                    if (block.FatBlock is IMyUpgradeModule && subtype == "LargeEnhancer")
+                                    else if (block.FatBlock is IMyUpgradeModule)
                                     {
-                                        //BattlePoints += 20; //flat Point cost for mass blocks
-
-                                        string enhID = "Shield Enhancer";
-                                        if (SpecialBlockList.ContainsKey(enhID))
+                                        if (subtype == "LargeEnhancer")
                                         {
-                                            SpecialBlockList[enhID] += 1;
+                                            id = "Shield Enhancer";
                                         }
-                                        else
+                                        else if (subtype == "EmitterL" || subtype == "EmitterLA")
                                         {
-                                            SpecialBlockList.Add(enhID, 1);
+                                            id = "Shield Emitter";
+                                        }
+                                        else if (subtype == "LargeShieldModulator")
+                                        {
+                                            id = "Shield Modulator";
+                                        }
+                                        else if (subtype == "DSControlLarge" || subtype == "DSControlTable")
+                                        {
+                                            id = "Shield Controller";
+                                        }
+                                        else if (subtype == "AQD_LG_GyroBooster")
+                                        {
+                                            id = "Gyro Booster";
+                                        }
+                                        else if (subtype == "AQD_LG_GyroUpgrade")
+                                        {
+                                            id = "Large Gyro Booster";
                                         }
                                     }
-                                    if (block.FatBlock is IMyUpgradeModule && subtype == "EmitterL" || subtype == "EmitterLA")
+                                    else if (block.FatBlock is IMyReactor)
                                     {
-
-
-                                        string emitID = "Shield Emitter";
-                                        if (SpecialBlockList.ContainsKey(emitID))
+                                        if (subtype == "LargeBlockLargeGenerator" || subtype == "LargeBlockLargeGeneratorWarfare2")
                                         {
-                                            SpecialBlockList[emitID] += 1;
+                                            id = "Large Reactor";
                                         }
-                                        else
+                                        else if (subtype == "LargeBlockSmallGenerator" || subtype == "LargeBlockSmallGeneratorWarfare2")
                                         {
-                                            SpecialBlockList.Add(emitID, 1);
+                                            id = "Small Reactor";
                                         }
                                     }
-                                    if (block.FatBlock is IMyUpgradeModule && subtype == "LargeShieldModulator")
+                                    else if (block.FatBlock is IMyGyro)
                                     {
-                                        //BattlePoints += 20; //flat Point cost for mass blocks
-
-                                        string modID = "Shield Modulator";
-                                        if (SpecialBlockList.ContainsKey(modID))
+                                        if (subtype == "LargeBlockGyro")
                                         {
-                                            SpecialBlockList[modID] += 1;
+                                            id = "Small Gyro";
                                         }
-                                        else
+                                        else if (subtype == "AQD_LG_LargeGyro")
                                         {
-                                            SpecialBlockList.Add(modID, 1);
+                                            id = "Large Gyro";
                                         }
                                     }
-                                    if (block.FatBlock is IMyUpgradeModule && subtype == "DSControlLarge" || subtype == "DSControlTable")
+                                    else if (block.FatBlock is IMyCameraBlock)
                                     {
-
-
-                                        string sconID = "Shield Controller";
-                                        if (SpecialBlockList.ContainsKey(sconID))
+                                        if (subtype == "MA_Buster_Camera")
                                         {
-                                            SpecialBlockList[sconID] += 1;
+                                            id = "Buster Camera";
                                         }
-                                        else
+                                        else if (subtype == "LargeCameraBlock")
                                         {
-                                            SpecialBlockList.Add(sconID, 1);
+                                            id = "Camera";
                                         }
                                     }
 
-                                    if (block.FatBlock is IMyReactor && (subtype == "LargeBlockLargeGenerator" || subtype == "LargeBlockLargeGeneratorWarfare2"))
+                                    if (!string.IsNullOrEmpty(id))
                                     {
-                                        string largeReID = "Large Reactor";
-                                        if (SpecialBlockList.ContainsKey(largeReID))
+                                        if (SBL.ContainsKey(id))
                                         {
-                                            SpecialBlockList[largeReID] += 1;
+                                            SBL[id] += 1;
                                         }
                                         else
                                         {
-                                            SpecialBlockList.Add(largeReID, 1);
+                                            SBL.Add(id, 1);
                                         }
                                     }
-                                    if (block.FatBlock is IMyReactor && (subtype == "LargeBlockSmallGenerator" || subtype == "LargeBlockSmallGeneratorWarfare2"))
-                                    {
-                                        //BattlePoints += 20; //flat Point cost for mass blocks
-
-                                        string smallReID = "Small Reactor";
-                                        if (SpecialBlockList.ContainsKey(smallReID))
-                                        {
-                                            SpecialBlockList[smallReID] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(smallReID, 1);
-                                        }
-                                    }
-
-
-                                    if (block.FatBlock is IMyUpgradeModule && (subtype == "AQD_LG_GyroBooster"))
-                                    {
-                                        string GyroB = "Gyro Booster";
-                                        if (SpecialBlockList.ContainsKey(GyroB))
-                                        {
-                                            SpecialBlockList[GyroB] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(GyroB, 1);
-                                        }
-                                    }
-                                    if (block.FatBlock is IMyUpgradeModule && (subtype == "AQD_LG_GyroUpgrade"))
-                                    {
-                                        string largeGyroB = "Large Gyro Booster";
-                                        if (SpecialBlockList.ContainsKey(largeGyroB))
-                                        {
-                                            SpecialBlockList[largeGyroB] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(largeGyroB, 1);
-                                        }
-                                    }
-                                    if (block.FatBlock is IMyGyro && (subtype == "LargeBlockGyro"))
-                                    {
-                                        string smallGyro = "Small Gyro";
-                                        if (SpecialBlockList.ContainsKey(smallGyro))
-                                        {
-                                            SpecialBlockList[smallGyro] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(smallGyro, 1);
-                                        }
-                                    }
-                                    if (block.FatBlock is IMyGyro && (subtype == "AQD_LG_LargeGyro"))
-                                    {
-                                        string largeGyro = "Large Gyro";
-                                        if (SpecialBlockList.ContainsKey(largeGyro))
-                                        {
-                                            SpecialBlockList[largeGyro] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(largeGyro, 1);
-                                        }
-                                    }
-
-                                    if (block.FatBlock is IMyCameraBlock && (subtype == "MA_Buster_Camera"))
-                                    {
-                                        string bCam = "Buster Camera";
-                                        if (SpecialBlockList.ContainsKey(bCam))
-                                        {
-                                            SpecialBlockList[bCam] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(bCam, 1);
-                                        }
-                                    }
-                                    if (block.FatBlock is IMyCameraBlock && (subtype == "LargeCameraBlock"))
-                                    {
-                                        string cCam = "Camera";
-                                        if (SpecialBlockList.ContainsKey(cCam))
-                                        {
-                                            SpecialBlockList[cCam] += 1;
-                                        }
-                                        else
-                                        {
-                                            SpecialBlockList.Add(cCam, 1);
-                                        }
-                                    }
-
 
                                     if (block.BlockDefinition != null && !string.IsNullOrEmpty(subtype))
                                     {
-                                        //if (subtype.ToLower().Contains("heavy") && subtype.ToLower().Contains("armor")
                                         if (subtype.Contains("Heavy") && subtype.Contains("Armor"))
                                         {
-                                            Heavyblocks += 1;
+                                            Heavyblocks++;
                                         }
 
-                                        if (block.FatBlock != null)
-                                        {
-                                            if (!(block.FatBlock is IMyMotorRotor) &&
-                                            !(block.FatBlock is IMyMotorStator) &&
-                                            !(block.BlockDefinition.Id.SubtypeName == "SC_SRB"))
-                                            {
-                                                CurrentIntegrity += block.Integrity;
-                                            }
-                                        }
-                                        else
+                                        if (block.FatBlock != null && !(block.FatBlock is IMyMotorRotor) && !(block.FatBlock is IMyMotorStator) && !(subtype == "SC_SRB"))
                                         {
                                             CurrentIntegrity += block.Integrity;
                                         }
                                     }
                                 }
 
-                                //fatblocks
-                                foreach (var block in subgrid.GetFatBlocks())
+                                foreach (var b in subgrid.GetFatBlocks())
                                 {
-                                    //points
-                                    string id = block?.BlockDefinition?.Id.SubtypeId.ToString();
+                                    string id = b?.BlockDefinition?.Id.SubtypeId.ToString();
                                     if (!string.IsNullOrEmpty(id))
                                     {
                                         if (PointCheck.PointValues.ContainsKey(id))
                                         {
-                                            BattlePoints += PointCheck.PointValues[id];
+                                            Bpts += PointCheck.PointValues[id];
                                         }
                                     }
                                     else
                                     {
 
-                                        if (block is IMyGravityGeneratorBase) //2015 blocks, no ID's
+                                        if (b is IMyGravityGeneratorBase)
                                         {
-                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("GravityGenerator", 0);
+                                            Bpts += PointCheck.PointValues.GetValueOrDefault("GravityGenerator", 0);
                                         }
-                                        else if (block is IMySmallGatlingGun)
+                                        else if (b is IMySmallGatlingGun)
                                         {
-                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("SmallGatlingGun", 0);
+                                            Bpts += PointCheck.PointValues.GetValueOrDefault("SmallGatlingGun", 0);
                                         }
-                                        else if (block is IMyLargeGatlingTurret)
+                                        else if (b is IMyLargeGatlingTurret)
                                         {
-                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("LargeGatlingTurret", 0);
+                                            Bpts += PointCheck.PointValues.GetValueOrDefault("LargeGatlingTurret", 0);
                                         }
-                                        else if (block is IMySmallMissileLauncher)
+                                        else if (b is IMySmallMissileLauncher)
                                         {
-                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("SmallMissileLauncher", 0);
+                                            Bpts += PointCheck.PointValues.GetValueOrDefault("SmallMissileLauncher", 0);
                                         }
-                                        else if (block is IMyLargeMissileTurret)
+                                        else if (b is IMyLargeMissileTurret)
                                         {
-                                            BattlePoints += PointCheck.PointValues.GetValueOrDefault("LargeMissileTurret", 0);
+                                            Bpts += PointCheck.PointValues.GetValueOrDefault("LargeMissileTurret", 0);
                                         }
                                     }
-                                    //block counts
+                                    //b counts
                                     if ((PointCheck.PointValues.ContainsKey(id) &&
-                                          !(block is IMyTerminalBlock)) ||
-                                            block is IMyGyro ||
-                                            block is IMyReactor ||
-                                            block is IMyBatteryBlock ||
-                                            block is IMyCockpit ||
-                                            block is IMyDecoy ||
-                                            block is IMyShipDrill ||
-                                            block is IMyGravityGeneratorBase ||
-                                            block is IMyShipWelder ||
-                                            block is IMyShipGrinder ||
-                                            block is IMyRadioAntenna ||
-                                            block is IMyThrust /*|| block is IMyUpgradeModule*/
-                                            && !(block.BlockDefinition.Id.SubtypeName == "LargeCameraBlock")
-                                            && !(block.BlockDefinition.Id.SubtypeName == "MA_Buster_Camera")
-                                            && !(block.BlockDefinition.Id.SubtypeName == "BlinkDriveLarge")
-                                            && !(block.BlockDefinition.Id.SubtypeName == "StealthDrive"))
+                                          !(b is IMyTerminalBlock)) ||
+                                            b is IMyGyro ||
+                                            b is IMyReactor ||
+                                            b is IMyBatteryBlock ||
+                                            b is IMyCockpit ||
+                                            b is IMyDecoy ||
+                                            b is IMyShipDrill ||
+                                            b is IMyGravityGeneratorBase ||
+                                            b is IMyShipWelder ||
+                                            b is IMyShipGrinder ||
+                                            b is IMyRadioAntenna ||
+                                            b is IMyThrust
+                                            && !(b.BlockDefinition.Id.SubtypeName == "LargeCameraBlock")
+                                            && !(b.BlockDefinition.Id.SubtypeName == "MA_Buster_Camera")
+                                            && !(b.BlockDefinition.Id.SubtypeName == "BlinkDriveLarge"))
                                     {
 
-                                        var typeID = block.BlockDefinition.Id.TypeId.ToString().Replace("MyObjectBuilder_", "");
+                                        var typeID = b.BlockDefinition.Id.TypeId.ToString().Replace("MyObjectBuilder_", "");
 
-                                        if (SpecialBlockList.ContainsKey(typeID))
+                                        if (SBL.ContainsKey(typeID))
                                         {
-                                            SpecialBlockList[typeID] += 1;
+                                            SBL[typeID] += 1;
                                         }
                                         else if (typeID != "Reactor" && typeID != "Gyro")
                                         {
-                                            SpecialBlockList.Add(typeID, 1);
+                                            SBL.Add(typeID, 1);
                                         }
 
-                                        //thrust
-                                        if (block is IMyThrust)
+                                        if (b is IMyThrust)
                                         {
-                                            InstalledThrust += (block as IMyThrust).MaxEffectiveThrust;
+                                            InstalledThrust += (b as IMyThrust).MaxEffectiveThrust;
                                             hasThrust = true;
                                         }
 
-                                        if (block is IMyCockpit && (block as IMyCockpit).CanControlShip)
+                                        if (b is IMyCockpit && (b as IMyCockpit).CanControlShip)
                                         {
                                             hasCockpit = true;
                                         }
 
-                                        if (block is IMyReactor || block is IMyBatteryBlock)
+                                        if (b is IMyReactor || b is IMyBatteryBlock)
                                         {
-                                            hasPower = true; CurrentPower += (block as IMyPowerProducer).MaxOutput;
+                                            hasPower = true; CurrentPower += (b as IMyPowerProducer).MaxOutput;
                                         }
 
-                                        if (block is IMyGyro)
+                                        if (b is IMyGyro)
                                         {
 
                                             hasGyro = true;
-                                            CurrentGyro += ((MyDefinitionManager.Static.GetDefinition((block as IMyGyro).BlockDefinition) as MyGyroDefinition).ForceMagnitude * (block as IMyGyro).GyroStrengthMultiplier);
+                                            CurrentGyro += ((MyDefinitionManager.Static.GetDefinition((b as IMyGyro).BlockDefinition) as MyGyroDefinition).ForceMagnitude * (b as IMyGyro).GyroStrengthMultiplier);
                                         }
 
-                                        if (block is IMyCockpit)
+                                        if (b is IMyCockpit)
                                         {
-                                            //controller = grid.DisplayName;
-                                            var p = (block as IMyCockpit).ControllerInfo?.Controller?.ControlledEntity?.Entity;
+                                            var p = (b as IMyCockpit).ControllerInfo?.Controller?.ControlledEntity?.Entity;
                                             if (p is IMyCockpit)
                                             {
                                                 controller = (p as IMyCockpit).Pilot.DisplayName;
                                             }
-                                            //controller = (block.FatBlock as IMyCockpit).ControllerInfo?.Controller?.ControlledEntity?.Entity?.DisplayName;
                                         }
 
 
                                     }
-
-
-                                    //guns
-                                    else if ((PointCheck.PointValues.ContainsKey(id) && block is IMyTerminalBlock) &&
-                                            !(block is IMyGyro) &&
-                                            !(block is IMyReactor) &&
-                                            !(block is IMyBatteryBlock) &&
-                                            !(block is IMyCockpit) &&
-                                            !(block is IMyDecoy) &&
-                                            !(block is IMyShipDrill) &&
-                                            !(block is IMyGravityGeneratorBase) &&
-                                            !(block is IMyShipWelder) &&
-                                            !(block is IMyShipGrinder) &&
-                                            !(block is IMyThrust) &&
-                                            !(block is IMyRadioAntenna) &&
-                                            !(block is IMyUpgradeModule &&
-                                            !(block.BlockDefinition.Id.SubtypeName == "BlinkDriveLarge")))
-
-
+                                    else if ((PointCheck.PointValues.ContainsKey(id) && b is IMyTerminalBlock) &&
+                                            !(b is IMyGyro) &&
+                                            !(b is IMyReactor) &&
+                                            !(b is IMyBatteryBlock) &&
+                                            !(b is IMyCockpit) &&
+                                            !(b is IMyDecoy) &&
+                                            !(b is IMyShipDrill) &&
+                                            !(b is IMyGravityGeneratorBase) &&
+                                            !(b is IMyShipWelder) &&
+                                            !(b is IMyShipGrinder) &&
+                                            !(b is IMyThrust) &&
+                                            !(b is IMyRadioAntenna) &&
+                                            !(b is IMyUpgradeModule &&
+                                            !(b.BlockDefinition.Id.SubtypeName == "BlinkDriveLarge")))
                                     {
 
-                                        IMyTerminalBlock tBlock = block as IMyTerminalBlock;
-                                        var tempName = tBlock.DefinitionDisplayNameText;
-                                        var fugname = tBlock.DisplayNameText;
-                                        var specialCost = 0f; //adds a fixed amount for every additional weapon after the first
-                                        var multCost = 0f; //multiplies the cost by the amount of weapons after the first
+                                        IMyTerminalBlock tBlock = b as IMyTerminalBlock;
+                                        var t_N = tBlock.DefinitionDisplayNameText;
+                                        var sCs = 0f;
+                                        var mCs = 0f;
 
-                                        if (tempName == "Blink Drive Large")
+                                        switch (t_N)
                                         {
-                                            tempName = "Blink Drive";
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
+                                            case "Blink Drive Large":
+                                                t_N = "Blink Drive";
+                                                mCs = 0.15f;
+                                                break;
+                                            case "Project Pluto (SLAM)":
+                                            case "SLAM":
+                                                t_N = "SLAM";
+                                                mCs = 0.25f;
+                                                break;
+                                            case "MRM-10 Modular Launcher 45":
+                                            case "MRM-10 Modular Launcher 45 Reversed":
+                                            case "MRM-10 Modular Launcher":
+                                            case "MRM-10 Modular Launcher Middle":
+                                            case "MRM-10 Launcher":
+                                                t_N = "MRM-10 Launcher";
+                                                mCs = 0.04f;
+                                                break;
+                                            case "LRM-5 Modular Launcher 45 Reversed":
+                                            case "LRM-5 Modular Launcher 45":
+                                            case "LRM-5 Modular Launcher Middle":
+                                            case "LRM-5 Modular Launcher":
+                                            case "LRM-5 Launcher":
+                                                t_N = "LRM-5 Launcher";
+                                                mCs = 0.0375f;
+                                                break;
+                                            case "Gimbal Laser T2 Armored":
+                                            case "Gimbal Laser T2 Armored Slope 45":
+                                            case "Gimbal Laser T2 Armored Slope 2":
+                                            case "Gimbal Laser T2 Armored Slope":
+                                            case "Gimbal Laser T2":
+                                                t_N = "Gimbal Laser T2";
+                                                mCs = 0f;
+                                                break;
+                                            case "Gimbal Laser Armored Slope 45":
+                                            case "Gimbal Laser Armored Slope 2":
+                                            case "Gimbal Laser Armored Slope":
+                                            case "Gimbal Laser Armored":
+                                            case "Gimbal Laser":
+                                                t_N = "Gimbal Laser";
+                                                mCs = 0f;
+                                                break;
+                                            case "BR-RT7 Punisher Slanted Burst Cannon":
+                                            case "BR-RT7 Punisher 70mm Burst Cannon":
+                                            case "Punisher":
+                                                t_N = "Punisher";
+                                                mCs = 0f;
+                                                break;
+                                            case "Slinger AC 150mm Sloped 30":
+                                            case "Slinger AC 150mm Sloped 45":
+                                            case "Slinger AC 150mm Gantry Style":
+                                            case "Slinger AC 150mm Sloped 45 Gantry":
+                                            case "Slinger AC 150mm":
+                                            case "Slinger":
+                                                t_N = "Slinger";
+                                                mCs = 0f;
+                                                break;
+                                            case "Starcore Arrow-IV Launcher":
+                                            case "SRM-8":
+                                            case "M-1 Torpedo":
+                                            case "Grimlock Launcher":
+                                            case "MCRN Torpedo Launcher":
+                                            case "OPA Heavy Torpedo Launcher":
+                                            case "OPA Light Missile Launcher":
+                                            case "UNN Heavy Torpedo Launcher":
+                                            case "UNN Light Torpedo Launcher":
+                                            case "200mm 'Thors Wrath' Missile System":
+                                            case "Horizon Device - Placeholder":
+                                            case "Tartarus VIII":
+                                            case "Cocytus IX":
+                                            case "M5D-2E HELIOS Plasma Pulser":
+                                                mCs = 0.15f;
+                                                break;
+                                            case "Flares":
+                                                mCs = 0.25f;
+                                                break;
                                         }
-                                        if (tempName == "Stealth Drive")
+                                        
+                                        
+                                        if (GunL.ContainsKey(t_N))
                                         {
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Project Pluto (SLAM)")
-                                        {
-                                            tempName = "SLAM";
-                                            specialCost = 0f;
-                                            multCost = 0.25f;
-                                        }
-                                        if (tempName == "MRM-10 Modular Launcher 45")
-                                        {
-                                            tempName = "MRM-10 Launcher";
-                                            specialCost = 0f;
-                                            multCost = 0.04f;
-                                        }
-                                        if (tempName == "MRM-10 Modular Launcher 45 Reversed")
-                                        {
-                                            tempName = "MRM-10 Launcher";
-                                            specialCost = 0f;
-                                            multCost = 0.04f;
-                                        }
-                                        if (tempName == "MRM-10 Modular Launcher")
-                                        {
-                                            tempName = "MRM-10 Launcher";
-                                            specialCost = 0f;
-                                            multCost = 0.04f;
-                                        }
-                                        if (tempName == "MRM-10 Modular Launcher Middle")
-                                        {
-                                            tempName = "MRM-10 Launcher";
-                                            specialCost = 0f;
-                                            multCost = 0.04f;
-                                        }
-                                        if (tempName == "LRM-5 Modular Launcher 45 Reversed")
-                                        {
-                                            tempName = "LRM-5 Launcher";
-                                            specialCost = 0f;
-                                            multCost = 0.0375f;
-                                        }
-                                        if (tempName == "LRM-5 Modular Launcher 45")
-                                        {
-                                            tempName = "LRM-5 Launcher";
-                                            specialCost = 0f;
-                                            multCost = 0.0375f;
-                                        }
-                                        if (tempName == "LRM-5 Modular Launcher Middle")
-                                        {
-                                            tempName = "LRM-5 Launcher";
-                                            specialCost = 0f;
-                                            multCost = 0.0375f;
-                                        }
-                                        if (tempName == "LRM-5 Modular Launcher")
-                                        {
-                                            tempName = "LRM-5 Launcher";
-                                            specialCost = 0f;
-                                            multCost = 0.0375f;
-                                        }
-                                        if (tempName == "Gimbal Laser T2 Armored")
-                                        {
-                                            tempName = "Gimbal Laser T2";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Gimbal Laser T2 Armored Slope 45")
-                                        {
-                                            tempName = "Gimbal Laser T2";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Gimbal Laser T2 Armored Slope 2")
-                                        {
-                                            tempName = "Gimbal Laser T2";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Gimbal Laser T2 Armored Slope")
-                                        {
-                                            tempName = "Gimbal Laser T2";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Gimbal Laser T2")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Gimbal Laser Armored Slope 45")
-                                        {
-                                            tempName = "Gimbal Laser";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Gimbal Laser Armored Slope 2")
-                                        {
-                                            tempName = "Gimbal Laser";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Gimbal Laser Armored Slope")
-                                        {
-                                            tempName = "Gimbal Laser";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Gimbal Laser Armored")
-                                        {
-                                            tempName = "Gimbal Laser";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-
-                                        if (tempName == "BR-RT7 Punisher Slanted Burst Cannon")
-                                        {
-                                            tempName = "BR-RT7 Punisher 70mm Burst Cannon";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "BR-RT7 Punisher 70mm Burst Cannon")
-                                        {
-                                            tempName = "Punisher";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Slinger AC 150mm Sloped 30")
-                                        {
-                                            tempName = "Slinger AC 150mm";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Slinger AC 150mm Sloped 45")
-                                        {
-                                            tempName = "Slinger AC 150mm";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Slinger AC 150mm Gantry Style")
-                                        {
-                                            tempName = "Slinger AC 150mm";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Slinger AC 150mm Sloped 45 Gantry")
-                                        {
-                                            tempName = "Slinger AC 150mm";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Slinger AC 150mm")
-                                        {
-                                            tempName = "Slinger";
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Starcore Arrow-IV Launcher")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "SRM-8")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "M-1 Torpedo")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "MA Derecho Missile Storm")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0f;
-                                        }
-                                        if (tempName == "Grimlock Launcher")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "MCRN Torpedo Launcher")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "OPA Heavy Torpedo Launcher")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "OPA Light Missile Launcher")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "UNN Heavy Torpedo Launcher")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "UNN Light Torpedo Launcher")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "200mm 'Thors Wrath' Missile System")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "Horizon Device - Placeholder")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "Tartarus VIII")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "Cocytus IX")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "M5D-2E HELIOS Plasma Pulser")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.15f;
-                                        }
-                                        if (tempName == "Flares")
-                                        {
-                                            specialCost = 0f;
-                                            multCost = 0.25f;
-                                        }
-
-
-                                        if (GunList.ContainsKey(tempName))
-                                        {
-                                            GunList[tempName] += 1;
+                                            GunL[t_N] += 1;
                                         }
                                         else
                                         {
-                                            GunList.Add(tempName, 1);
+                                            GunL.Add(t_N, 1);
                                         }
 
-                                        //MathHelper.RoundToInt(multCost);
-                                        if ((specialCost > 0 || multCost > 0) && GunList[tempName] > 1)
+                                        if ((sCs > 0 || mCs > 0) && GunL[t_N] > 1)
                                         {
-                                            BattlePoints += (int)(PointCheck.PointValues[id] * (specialCost + ((GunList[tempName] - 1) * multCost))); //Point value of current block being evaluated
+                                            Bpts += (int)(PointCheck.PointValues[id] * (sCs + ((GunL[t_N] - 1) * mCs)));
                                         }
-
-
-
                                     }
 
                                 }
                             }
                         }
 
-
                         IMyCubeGrid mainGrid = connectedGrids[0];
-
-                        //Owner name
                         FactionName = "None";
                         OwnerName = "Unowned";
+
                         if (mainGrid.BigOwners != null && mainGrid.BigOwners.Count > 0)
                         {
                             OwnerID = mainGrid.BigOwners[0];
                             Owner = PointCheck.GetOwner(OwnerID);
-                            OwnerName = controller ?? (Owner?.DisplayName ?? GridName);
+                            OwnerName = controller ?? Owner?.DisplayName ?? GridName;
 
                             var f = MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(OwnerID);
                             if (f != null)
                             {
-                                FactionName = f.Tag ?? "None";
+                                FactionName = f.Tag ?? FactionName;
                                 FactionColor = ColorMaskToRGB(f.CustomColor);
                             }
                         }
 
-                        //DPS = PointCheck.WC_api.GetConstructEffectiveDps(mainGrid);
-
                         GridName = Grid.DisplayName;
-
                         Position = Grid.Physics.CenterOfMassWorld;
+                        IsFunctional = hasPower && hasCockpit && hasGyro;
 
-                        IsFunctional = hasPower && hasCockpit && hasGyro;// && hasThrust;
-
-                        //Shield calc for all grids
                         IMyTerminalBlock shield_block = null;
                         foreach (var g in connectedGrids)
                         {
-                            if (shield_block == null)
+                            if ((shield_block = PointCheck.SH_api.GetShieldBlock(g)) != null)
                             {
-                                shield_block = PointCheck.SH_api.GetShieldBlock(g);
                                 break;
                             }
                         }
+
                         if (shield_block != null)
                         {
                             TotalShieldStrength = PointCheck.SH_api.GetMaxHpCap(shield_block);
@@ -802,15 +487,8 @@ namespace klime.PointCheck
                             ShieldHeat = PointCheck.SH_api.GetShieldHeat(shield_block);
                         }
 
-                        if (OriginalIntegrity == -1)
-                        {
-                            OriginalIntegrity = CurrentIntegrity;
-                        }
-
-                        if (OriginalPower == -1)
-                        {
-                            OriginalPower = CurrentPower;
-                        }
+                        OriginalIntegrity = OriginalIntegrity == -1 ? CurrentIntegrity : OriginalIntegrity;
+                        OriginalPower = OriginalPower == -1 ? CurrentPower : OriginalPower;
 
                     }
 
@@ -920,10 +598,10 @@ namespace klime.PointCheck
 
         private void Reset()
         {
-            SpecialBlockList.Clear();
-            GunList.Clear();
+            SBL.Clear();
+            GunL.Clear();
 
-            BattlePoints = 0;
+            Bpts = 0;
             InstalledThrust = 0;
             Mass = 0;
             Heavyblocks = 0;

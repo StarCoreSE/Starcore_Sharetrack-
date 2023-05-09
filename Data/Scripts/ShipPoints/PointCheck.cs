@@ -20,7 +20,7 @@ using VRage.ModAPI;
 using VRage.Utils;
 using VRage.Library.Utils;
 using VRageMath;
-using WeaponCore.Api;
+using CoreSystems.Api;
 using static Math0424.Networking.MyNetworkHandler;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 using VRage.Noise.Patterns;
@@ -59,9 +59,9 @@ namespace klime.PointCheck
         string capProgress3;
         T CastProhibit<T>(T ptr, object val) => (T)val;
         public static Dictionary<string, int> PointValues = new Dictionary<string, int>();
-        public static WcApi WC_api { get; private set; }
+        public WcApi WC_api { get; private set; }
         public static ShieldApi SH_api { get; private set; }
-        public static RtsApi RTS_api { get; private set; }
+        public RtsApi RTS_api { get; private set; }
 
         public Vector3 ctrpoint = new Vector3(0, 0, 0);
         public Vector3 ctrpoint2 = new Vector3(4500, 0, 9000);
@@ -1296,14 +1296,14 @@ internal void UpdateCapZone3()
                                         total_shield_string = Math.Round((tracked.TotalShieldStrength), 0).ToString() + "0 K";
                                     }
                                     string gunText = "";
-                                    foreach (var x in tracked.GunList.Keys)
+                                    foreach (var x in tracked.GunL.Keys)
                                     {
-                                        gunText += "<color=Green>" + tracked.GunList[x] + "<color=White> x " + x + "\n";
+                                        gunText += "<color=Green>" + tracked.GunL[x] + "<color=White> x " + x + "\n";
                                     }
                                     string specialBlockText = "";
-                                    foreach (var x in tracked.SpecialBlockList.Keys)
+                                    foreach (var x in tracked.SBL.Keys)
                                     {
-                                        specialBlockText += "<color=Green>" + tracked.SpecialBlockList[x] + "<color=White> x " + x + "\n";
+                                        specialBlockText += "<color=Green>" + tracked.SBL[x] + "<color=White> x " + x + "\n";
                                     }
                                     string massString = tracked.Mass.ToString();
                                     if (tracked.Mass > 1000000)
@@ -1347,7 +1347,7 @@ internal void UpdateCapZone3()
                                             + "\n" + "<color=Green>Max Speed<color=White>: " + speed
                                             + "\n"
                                             + "\n" + "<color=Orange>----Battle Stats----"
-                                            + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.BattlePoints.ToString()
+                                            + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
                                             + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                             + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
                                             + "\n" + "<color=Green>Gyro<color=White>: " + GyroString + "N"
@@ -1389,14 +1389,14 @@ internal void UpdateCapZone3()
                                     total_shield_string = Math.Round((tracked.TotalShieldStrength), 0).ToString() + "0 K";
                                 }
                                 string gunText = "";
-                                foreach (var x in tracked.GunList.Keys)
+                                foreach (var x in tracked.GunL.Keys)
                                 {
-                                    gunText += "<color=Green>" + tracked.GunList[x] + "<color=White> x " + x + "\n";
+                                    gunText += "<color=Green>" + tracked.GunL[x] + "<color=White> x " + x + "\n";
                                 }
                                 string specialBlockText = "";
-                                foreach (var x in tracked.SpecialBlockList.Keys)
+                                foreach (var x in tracked.SBL.Keys)
                                 {
-                                    specialBlockText += "<color=Green>" + tracked.SpecialBlockList[x] + "<color=White> x " + x + "\n";
+                                    specialBlockText += "<color=Green>" + tracked.SBL[x] + "<color=White> x " + x + "\n";
                                 }
                                 string massString = tracked.Mass.ToString();
                                 if (tracked.Mass > 1000000)
@@ -1440,7 +1440,7 @@ internal void UpdateCapZone3()
                                         + "\n" + "<color=Green>Max Speed<color=White>: " + speed
                                         + "\n"
                                         + "\n" + "<color=Orange>----Battle Stats----"
-                                        + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.BattlePoints.ToString()
+                                        + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
                                         + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                         + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
                                         + "\n" + "<color=Green>Gyro<color=White>: " + GyroString + "N"
@@ -1521,9 +1521,9 @@ internal void UpdateCapZone3()
                                     else { tempPWR = tracked.CurrentPower.ToString(); }
                                     string PWR = tempPWR + PWRNotation;
                                     string gunText = "";
-                                    foreach (var x in tracked.GunList.Keys)
+                                    foreach (var x in tracked.GunL.Keys)
                                     {
-                                        gunText += "<color=Green>" + tracked.GunList[x] + "<color=White> x " + x + "\n";
+                                        gunText += "<color=Green>" + tracked.GunL[x] + "<color=White> x " + x + "\n";
 
                                     }
                                     gunText += "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
@@ -1589,9 +1589,9 @@ internal void UpdateCapZone3()
                                 else { tempPWR = tracked.CurrentPower.ToString(); }
                                 string PWR = tempPWR + PWRNotation;
                                 string gunText = "";
-                                foreach (var x in tracked.GunList.Keys)
+                                foreach (var x in tracked.GunL.Keys)
                                 {
-                                    gunText += "<color=Green>" + tracked.GunList[x] + "<color=White> x " + x + "\n";
+                                    gunText += "<color=Green>" + tracked.GunL[x] + "<color=White> x " + x + "\n";
 
                                 }
                                 gunText += "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
@@ -1651,9 +1651,9 @@ internal void UpdateCapZone3()
                             totalBattlePoints.Add(factionName, 0);
                         }
                         totalMass[factionName] += data.Mass;
-                        totalBattlePoints[factionName] += data.BattlePoints;
+                        totalBattlePoints[factionName] += data.Bpts;
 
-                        int guns = 0; foreach (int s in data.GunList.Values)
+                        int guns = 0; foreach (int s in data.GunL.Values)
                         {
 
                             guns += s;
