@@ -24,6 +24,7 @@ using CoreSystems.Api;
 using static Math0424.Networking.MyNetworkHandler;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 using VRage.Noise.Patterns;
+using VRage;
 
 namespace klime.PointCheck
 {
@@ -59,7 +60,7 @@ namespace klime.PointCheck
         string capProgress3;
         T CastProhibit<T>(T ptr, object val) => (T)val;
         public static Dictionary<string, int> PointValues = new Dictionary<string, int>();
-        public WcApi WC_api { get; private set; }
+        public static WcApi WC_api { get; private set; }
         public static ShieldApi SH_api { get; private set; }
         public RtsApi RTS_api { get; private set; }
 
@@ -134,6 +135,229 @@ namespace klime.PointCheck
         public bool SphereVisual = true;
         bool joinInit = false;
         private const double ViewDistSqr = 306250000;
+
+        public static Dictionary<string, bool> weaponsDictionary = new Dictionary<string, bool>
+{
+{"MA_T2PDX",true},
+{"MA_T2PDX_Slope",true},
+{"MA_T2PDX_Slope2",true},
+{"MA_Gimbal_Laser_T2",true},
+{"MA_Gimbal_Laser_T2_Armored",true},
+{"MA_Gimbal_Laser_T2_Armored_Slope",true},
+{"MA_Gimbal_Laser_T2_Armored_Slope2",true},
+{"MA_Gimbal_Laser_T2_Armored_Slope45",true},
+{"MA_AC150",true},
+{"MA_AC150_30",true},
+{"MA_AC150_45",true},
+{"MA_AC150_45_Gantry",true},
+{"MA_AC150_Gantry",true},
+{"K_SA_Gauss_APC",true},
+{"K_SA_Gauss_AMS",true},
+{"K_SA_Gauss_ERC",true},
+{"MA_Gladius",true},
+{"MA_PDX",true},
+{"MA_Gimbal_Laser",true},
+{"MA_Gimbal_Laser_Armored",true},
+{"MA_Gimbal_Laser_Armored_Slope",true},
+{"MA_Gimbal_Laser_Armored_Slope2",true},
+{"MA_Gimbal_Laser_Armored_Slope45",true},
+{"MA_PDT",true},
+{"MA_Fixed_000",true},
+{"MA_Fixed_001",true},
+{"MA_Fixed_002",true},
+{"MA_Fixed_007",true},
+{"MA_Fixed_003",true},
+{"MA_Fixed_004",true},
+{"MA_Fixed_005",true},
+{"MA_Fixed_006",true},
+{"MA_Fixed_T2",true},
+{"MA_Fixed_T2_Naked",true},
+{"MA_Fixed_T3",true},
+{"MA_Tiger",true},
+{"MA_Crouching_Tiger",true},
+{"AMSlaser",true},
+{"MCRNRightRetractPDC",true},
+{"MCRNLeftRetractPDC",true},
+{"MCRNTopRetractPDC",true},
+{"MCRNPDCTurretLB",true},
+{"ARYXGaussCannon",true},
+{"AWGGG",true},
+{"ARYXMagnetarCannon",true},
+{"ARYXPlasmaPulser",true},
+{"ARYXLargeRadar",true},
+{"ARYXBurstTurret",true},
+{"ARYXBurstTurretSlanted",true},
+{"BFG_M",true},
+{"BFTriCannon",true},
+{"K_SA_HeavyMetal_Gauss_ERII",true},
+{"K_SA_HeavyMetal_Gauss_ERIIRF",true},
+{"K_SA_Launcher_FixedMountv2",true},
+{"K_SA_Launcher_FixedMount",true},
+{"K_SA_LoW_CapitalSpinalA",true},
+{"K_SA_HeavyMetal_Gauss_ERFM",true},
+{"K_SA_HeavyMetal_Gauss_A",true},
+{"K_SA_HeavyMetal_Gauss_PGBC",true},
+{"ARYXTempestCannon",true},
+{"ARYXLightCoilgun",true},
+{"ARYXFocusLance",true},
+{"ARYXRailgun",true},
+{"Static150mm",true},
+{"MediumFocusLance",true},
+{"MA_PDX_sm",true},
+{"MA_PDT_sm",true},
+{"RotaryCannon",true},
+{"Starcore_PPC_Block",true},
+{"Starcore_AMS_II_Block",true},
+{"MA_Derecho",true},
+{"K_SA_Gauss_AMSIIC",true},
+{"SA_HMI_Erebos",true},
+{"HAS_Thanatos",true},
+{"HAS_Alecto",true},
+{"HAS_Assault",true},
+{"HAS_Mammon",true},
+{"ARYXRailgunTurret",true},
+{"MCRNRailgunLB",true},
+{"K_SA_HeavyMetal_Spinal_Rotary",true},
+{"K_SA_HeavyMetal_Spinal_Rotary_Reskin",true},
+{"MetalStorm",true},
+{"Odin_Rail_2",true},
+{"Odin_Rail_1",true},
+{"MCRN_Heavy_Torpedo",true},
+{"OPA_Heavy_Torpedo",true},
+{"OPA_Light_Missile",true},
+{"UNN_Heavy_Torpedo",true},
+{"UNN_Light_Torpedo",true},
+{"Starcore_Fixed_Coil_Cannon",true},
+{"Starcore_AMS_I_Block",true},
+{"Odin_Torpedo",true},
+{"Odin_Missile_Battery",true},
+{"K_SA_Launcher_VIV",true},
+{"K_SA_Launcher_VI",true},
+{"Starcore_SSRM_Block",true},
+{"ModularSRM8",true},
+{"Starcore_MRM_Block",true},
+{"Starcore_MRM45_Block",true},
+{"ModularMRM10",true},
+{"ModularMiddleMRM10",true},
+{"ModularMRM10Angled",true},
+{"ModularMRM10AngledReversed",true},
+{"ModularLRM5",true},
+{"ModularLRM5Angled",true},
+{"ModularMiddleLRM5",true},
+{"ModularLRM5AngledReversed",true},
+{"Starcore_Arrow_Block",true},
+{"SC_Flare",true},
+{"Odin_Laser_Fixed",true},
+{"Odin_Autocannon_Fixed",true},
+{"Odin_PDC",true},
+{"Odin_Defense_1x2",true},
+{"Odin_Gatling_Laser",true},
+{"Odin_5x5_Cannon",true},
+{"BlinkDriveLarge",true},
+{"Chet_Flak_Cannon",true},
+{"Odin_PDC_45_Slope",true},
+{"Odin_PDC_Half_Slope_Tip",true},
+{"Odin_PDC_Half",true},
+{"Odin_PDC_Half_Slope_Top",true},
+{"Odin_CoilCannon",true},
+{"Odin_Autocannon_2",true},
+{"Starcore_M_Laser_Block",true},
+{"Starcore_L_Laser_Block",true},
+{"Starcore_Basic_Warhead",true},
+{"Odin_7x7_Battleshipcannon",true},
+{"Odin_7x7_Battleshipcannon_Surface",true},
+{"Odin_5x5_Battleshipcannon",true},
+{"Odin_5x5_Battleshipcannon_Surface",true},
+{"Odin_3x3_Battleshipcannon",true},
+{"Odin_3x3_Battleshipcannon_Surface",true},
+{"JN_175Fixed",true},
+{"AMP_ArcMelee",true},
+{"AMP_ArcMeleeReskin",true},
+{"AMP_FlameThrower",true},
+{"AMP_CryoShotgun",true},
+{"Hexcannon",true},
+{"HakkeroBeam",true},
+{"HakkeroProjectile",true},
+{"HAS_Esper",true},
+{"HAS_Vulcan",true},
+{"SC_Coil_Cannon",true},
+{"NHI_PD_Turret",true},
+{"NHI_PD_Turret_Half",true},
+{"NHI_PD_Turret_Half_Slope_Top",true},
+{"NHI_PD_Turret_Half_Slope_Tip",true},
+{"NHI_PD_Turret_45_Slope",true},
+{"NHI_Light_Autocannon_Turret",true},
+{"NHI_Autocannon_Turret",true},
+{"NHI_Gatling_Laser_Turret",true},
+{"NHI_Light_Railgun_Turret",true},
+{"NHI_Heavy_Gun_Turret",true},
+{"NHI_Mk3_Cannon_Turret",true},
+{"NHI_Mk3_Cannon_Surface_Turret",true},
+{"NHI_Mk2_Cannon_Turret",true},
+{"NHI_Mk2_Cannon_Surface_Turret",true},
+{"NHI_Mk1_Cannon_Turret",true},
+{"NHI_Mk1_Cannon_Surface_Turret",true},
+{"NHI_Fixed_Autocannon",true},
+{"NHI_Fixed_Gatling_Laser",true},
+{"NHI_Kinetic_Cannon_Turret",true},
+{"CLB2X",true},
+{"ERPPC",true},
+{"SC_COV_Plasma_Turret",true},
+{"banshee",true},
+{"TaiidanHangarHuge",true},
+{"TaiidanHangar",true},
+{"TaiidanHangarCompact",true},
+{"NHI_Fixed_Missile_Battery",true},
+{"HakkeroProjectileMini",true},
+{"HakkeroBeamMini",true},
+{"SLAM",true},
+{"TaiidanRailFighter",true},
+{"TaiidanRailBomber",true},
+{"TaiidanHangarFighter",true},
+{"TaiidanHangarBomber",true},
+{"TaiidanSingleHangar",true},
+{"MA_Guardian",true},
+{"Laser_Block",true},
+{"Torp_Block",true},
+{"Heavy_Repeater",true},
+{"Fixed_Rockets",true},
+{"Type18_Artillery",true},
+{"Type21_Artillery",true},
+{"Assault_Coil_Turret",true},
+{"Light_Coil_Turret",true},
+{"RailgunTurret_Block",true},
+{"K_HS_9x9_K3_King",true},
+{"K_HS_9x9_HSRB_Dreadnight",true},
+{"Null_Point_Jump_Disruptor_Large",true},
+{"LargeGatlingTurret_SC",true},
+{"LargeMissileTurret_SC",true},
+{"LargeBlockMediumCalibreTurret_SC",true},
+{"LargeCalibreTurret_SC",true},
+{"LargeRailgun_SC",true},
+{"LargeBlockLargeCalibreGun_SC",true},
+{"LargeMissileLauncher_SC",true},
+{"Starcore_RWR_Projectiles",true},
+{"NID_Pyroacid",true},
+{"NID_HeavyPyroacid",true},
+{"NID_Bioplasma",true},
+{"NID_Hivedrone",true},
+{"NID_BioplasmaHivedrone",true},
+{"NID_Leap",true},
+{"LightParticleWhip",true},
+{"ParticleWhip",true},
+{"NovaCannon",true},
+{"longsword",true},
+{"65_Launcher_FixedMount",true},
+{"Hellfire_Laser_Block",true},
+{"HAS_Cyclops",true}
+};
+
+
+
+
+
+
+
 
         private void RefreshVisualState()
         {
@@ -677,6 +901,7 @@ namespace klime.PointCheck
         }
         public override void BeforeStart()
         {
+            //base.BeforeStart();
             // Check if the current instance is not a dedicated server
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
@@ -690,6 +915,7 @@ namespace klime.PointCheck
             }
 
             // Initialize the WC_api and load it if it's not null
+
             WC_api = new WcApi();
             if (WC_api != null)
             {
@@ -1362,8 +1588,8 @@ internal void UpdateCapZone3()
                                             + tracked.powerPercentage.ToString() 
                                             + "<color=White>% | <color=DeepSkyBlue>" 
                                             + tracked.movementPercentage.ToString() 
-                                            //+ "<color=White>% | <color=LightGray>" 
-                                            //+ tracked.miscPercentage.ToString() 
+                                            + "<color=White>% | <color=LightGray>" 
+                                            + tracked.miscPercentage.ToString() 
                                             + "<color=White>% )"
 
                                             + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
@@ -1468,6 +1694,15 @@ internal void UpdateCapZone3()
                                         + "\n"
                                         + "\n" + "<color=Orange>----Battle Stats----"
                                         + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
+                                            + " (<color=Red> " + tracked.offensivePercentage.ToString()
+                                            + "<color=White>% | <color=Green>"
+                                            + tracked.powerPercentage.ToString()
+                                            + "<color=White>% | <color=DeepSkyBlue>"
+                                            + tracked.movementPercentage.ToString()
+                                            + "<color=White>% | <color=LightGray>"
+                                            + tracked.miscPercentage.ToString()
+                                            + "<color=White>% )"
+
                                         + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                         + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
                                         + "\n" + "<color=Green>Gyro<color=White>: " + GyroString + "N"
@@ -1651,8 +1886,18 @@ internal void UpdateCapZone3()
                 if (timer % 60 == 0 && integretyMessage != null && text_api.Heartbeat)
                 {
 
-                    StringBuilder temp_text = new StringBuilder(); Dictionary<string, List<string>> trackedShips = new Dictionary<string, List<string>>();
-                    Dictionary<string, double> totalMass = new Dictionary<string, double>(); Dictionary<string, int> totalBattlePoints = new Dictionary<string, int>();
+                    StringBuilder temp_text = new StringBuilder(); 
+                    Dictionary<string, List<string>> trackedShips = new Dictionary<string, List<string>>();
+                    Dictionary<string, double> totalMass = new Dictionary<string, double>(); 
+                    Dictionary<string, int> totalBattlePoints = new Dictionary<string, int>();
+
+                    Dictionary<string,int> totalMiscBps = new Dictionary<string, int>();
+                    Dictionary<string, int> totalPowerBps = new Dictionary<string, int>();
+                    Dictionary<string, int> totalOffensiveBps = new Dictionary<string, int>();
+                    Dictionary<string, int> totalMovementBps = new Dictionary<string, int>();
+
+
+
                     foreach (var z in Tracking)
                     {
                         if (!Data.ContainsKey(z))
@@ -1678,9 +1923,19 @@ internal void UpdateCapZone3()
                             trackedShips.Add(factionName, new List<string>());
                             totalMass.Add(factionName, 0);
                             totalBattlePoints.Add(factionName, 0);
+                            totalMiscBps.Add(factionName, 0);
+                            totalPowerBps.Add(factionName, 0);
+                            totalOffensiveBps.Add(factionName, 0);
+                            totalMovementBps.Add(factionName, 0);
                         }
                         totalMass[factionName] += data.Mass;
                         totalBattlePoints[factionName] += data.Bpts;
+
+                        totalMiscBps[factionName] += data.MiscBps;
+                        totalPowerBps[factionName] += data.PowerBps;
+                        totalOffensiveBps[factionName] += data.OffensiveBps;
+                        totalMovementBps[factionName] += data.MovementBps;
+
 
                         int guns = 0; foreach (int s in data.GunL.Values)
                         {
@@ -1780,10 +2035,26 @@ internal void UpdateCapZone3()
                             PWR,
                             tempThrust));
                     }
+                    
+                    
+                    
                     foreach (var x in trackedShips.Keys)
                     {
                         string massStr = Math.Round((totalMass[x] / 1000000f), 2).ToString() + "M";
-                        temp_text.Append("<color=white>---------- <color=orange>" + x + " : " + massStr + " : " + totalBattlePoints[x] + "bp<color=white> ----------\n");
+                        float totalBps = totalOffensiveBps[x] + totalMovementBps[x] + totalPowerBps[x] + totalMiscBps[x];
+                        float totalBpsInv = 100f / totalBattlePoints[x];
+                        string MovementPercentage = ((int)(totalMovementBps[x] * totalBpsInv + 0.5f)).ToString();
+                        string OffensivePercentage = ((int)(totalOffensiveBps[x] * totalBpsInv + 0.5f)).ToString();
+                        string PowerPercentage = ((int)(totalPowerBps[x] * totalBpsInv + 0.5f)).ToString();
+                        string MiscPercentage = ((int)(totalMiscBps[x] * totalBpsInv + 0.5f)).ToString();
+
+                        temp_text.Append("<color=white>---- <color=orange>" 
+                            + x + " : " + massStr + " : " 
+                            + totalBattlePoints[x] + "bp <color=white>(<color=Red>" + OffensivePercentage 
+                            + "<color=white>%|<color=Green>" + PowerPercentage + "<color=white>%|<color=DeepSkyBlue>"
+                            + MovementPercentage + "<color=white>%|<color=LightGray>"
+                            + MiscPercentage + "<color=white>%)"
+                            + "<color=white> ---------\n");
                         foreach (var y in trackedShips[x])
 
                         {
@@ -2693,23 +2964,9 @@ internal void UpdateCapZone3()
             return null;
         }
 
-
-        
-
-        public static Vector3 CrazyKing()
-        {
-            int randombracketlow = -3000, randombrackethigh = 3000;
-
-            int RandomInt1 = MyUtils.GetRandomInt(randombracketlow, randombrackethigh);
-            int RandomInt2 = MyUtils.GetRandomInt(-6000, 6000);
-            int RandomInt3 = MyUtils.GetRandomInt(randombracketlow, randombrackethigh);
-            Vector3 CrazyOutputVector = new Vector3(RandomInt1, RandomInt2, RandomInt3);
-
-            //MyAPIGateway.Utilities.ShowMessage("GM", "RandomVector3d:" + CrazyOutputVector.ToString());
-            return CrazyOutputVector;
-        }
         protected override void UnloadData()
         {
+            base.UnloadData();
             if (text_api != null)
             {
                 text_api.Unload();
@@ -2730,6 +2987,7 @@ internal void UpdateCapZone3()
                 all_players.Clear();
                 listPlayers.Clear();
             }
+             
             //NetworkAPI.Instance.Close();
             foreach (var x in Data.Keys)
             {
@@ -2747,7 +3005,24 @@ internal void UpdateCapZone3()
             Static?.Dispose();
             MyAPIGateway.Utilities.UnregisterMessageHandler(2546247, AddPointValues);
         }
-    }
+
+
+
+        public static Vector3 CrazyKing()
+        {
+            int randombracketlow = -3000, randombrackethigh = 3000;
+
+            int RandomInt1 = MyUtils.GetRandomInt(randombracketlow, randombrackethigh);
+            int RandomInt2 = MyUtils.GetRandomInt(-6000, 6000);
+            int RandomInt3 = MyUtils.GetRandomInt(randombracketlow, randombrackethigh);
+            Vector3 CrazyOutputVector = new Vector3(RandomInt1, RandomInt2, RandomInt3);
+
+            //MyAPIGateway.Utilities.ShowMessage("GM", "RandomVector3d:" + CrazyOutputVector.ToString());
+            return CrazyOutputVector;
+        }
+        }
+
+
 
     public static class GridExtensions
     {

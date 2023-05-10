@@ -23,9 +23,9 @@ using VRage.ObjectBuilders;
 using SpaceEngineers.Game.ModAPI;
 using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Definitions;
-
-
-
+using CoreSystems.Api;
+using CoreSystems;
+using VRage.Audio;
 
 namespace klime.PointCheck
 {
@@ -67,10 +67,15 @@ namespace klime.PointCheck
         [ProtoMember(26)] public Dictionary<string, int> SBL = new Dictionary<string, int>();
         [ProtoMember(27)] public float CurrentGyro;
 
-        [ProtoMember(28)] public float movementPercentage;
-        [ProtoMember(29)] public float powerPercentage;
-        [ProtoMember(30)] public float offensivePercentage;
-        [ProtoMember(31)] public float miscPercentage;
+        [ProtoMember(28)] public int movementPercentage = 0;
+        [ProtoMember(29)] public int powerPercentage = 0;
+        [ProtoMember(30)] public int offensivePercentage = 0;
+        [ProtoMember(31)] public int miscPercentage = 0;
+
+        [ProtoMember(32)] public int MovementBps = 0;
+        [ProtoMember(33)] public int PowerBps = 0;
+        [ProtoMember(34)] public int OffensiveBps = 0;
+        [ProtoMember(35)] public int MiscBps = 0;
 
         public ShipTracker() { }
 
@@ -96,6 +101,7 @@ namespace klime.PointCheck
 
         private List<IMyCubeGrid> connectedGrids = new List<IMyCubeGrid>();
         private List<IMySlimBlock> tmpBlocks = new List<IMySlimBlock>();
+
         public void Update()
         {
 
@@ -118,7 +124,8 @@ namespace klime.PointCheck
                     {
                         Mass = (Grid as MyCubeGrid).GetCurrentMass();
                         bool hasPower = false, hasCockpit = false, hasThrust = false, hasGyro = false;
-                        float movementBpts = 0, powerBpts = 0, offensiveBpts = 0, MiscBpts = 0; // new counters
+                        float movementBpts = 0, powerBpts = 0, offensiveBpts = 0, MiscBpts = 0;
+                        int bonusBpts = 0;// new counters
                         string controller = null;
 
                         foreach (var grid in connectedGrids)
@@ -368,7 +375,6 @@ namespace klime.PointCheck
 
                                         IMyTerminalBlock tBlock = b as IMyTerminalBlock;
                                         var t_N = tBlock.DefinitionDisplayNameText;
-                                        var sCs = 0f;
                                         var mCs = 0f;
 
                                         switch (t_N)
@@ -449,8 +455,10 @@ namespace klime.PointCheck
                                                 mCs = 0.25f;
                                                 break;
                                         }
-                                        
-                                        
+
+
+
+
                                         if (GunL.ContainsKey(t_N))
                                         {
                                             GunL[t_N] += 1;
@@ -460,40 +468,57 @@ namespace klime.PointCheck
                                             GunL.Add(t_N, 1);
                                         }
 
-                                        if ((sCs > 0 || mCs > 0) && GunL[t_N] > 1)
+                                        if ((mCs > 0) && GunL[t_N] > 1)
                                         {
-                                            Bpts += (int)(PointCheck.PointValues[id] * (sCs + ((GunL[t_N] - 1) * mCs)));
+                                            bonusBpts = (int)(PointCheck.PointValues[id] * ((GunL[t_N] - 1) * mCs));
+                                            Bpts += bonusBpts;
                                         }
                                     }
-                                    if (b is IMyThrust || b is IMyGyro)
+
+
+                                    bool hasWeapon;
+                                    if (PointCheck.weaponsDictionary.TryGetValue(b.BlockDefinition.Id.SubtypeName, out hasWeapon) && hasWeapon)
                                     {
-                                        movementBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
-                                    }
-                                    else if (b is IMyReactor || b is IMyBatteryBlock)
-                                    {
-                                        powerBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                        offensiveBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                        offensiveBpts += bonusBpts;
+
                                     }
                                     else
                                     {
-                                        offensiveBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                        string blockType = b.BlockDefinition.Id.SubtypeName;
+                                        if (b is IMyThrust || b is IMyGyro || blockType == "BlinkDriveLarge" || blockType.Contains("Afterburner"))
+                                        {
+                                            movementBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                        }
+                                        else if (b is IMyReactor || b is IMyBatteryBlock)
+                                        {
+                                            powerBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                        }
+                                        else
+                                        {
+                                            MiscBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                        }
                                     }
-                                  //  else
-                                  //  {
-                                  //      MiscBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
-                                   // }
 
                                 }
                             }
                         }
+
+                        // pre-calculate totalBpts
+                        float totalBpts = 0;
+                        totalBpts = movementBpts + powerBpts + offensiveBpts + MiscBpts;
+                        float totalBptsInv = 100f / totalBpts; // pre-calculate inverse of totalBpts
+
                         // calculate percentage of Bpts for each block type
-                        float totalBpts = movementBpts + powerBpts + offensiveBpts + MiscBpts;
-                         movementPercentage = (float)Math.Round((movementBpts / totalBpts) * 100, 0);
-                         powerPercentage = (float)Math.Round((powerBpts / totalBpts) * 100, 0);
-                         offensivePercentage = (float)Math.Round((offensiveBpts / totalBpts) * 100, 0);
-                         //miscPercentage = (float)Math.Round((offensiveBpts / totalBpts) * 100, 0);
+                        movementPercentage = (int)(movementBpts * totalBptsInv + 0.5f);
+                        powerPercentage = (int)(powerBpts * totalBptsInv + 0.5f);
+                        offensivePercentage = (int)(offensiveBpts * totalBptsInv + 0.5f);
+                        miscPercentage = (int)(MiscBpts * totalBptsInv + 0.5f);
 
-
-
+                        MiscBps = (int)MiscBpts;
+                        PowerBps = (int)powerBpts;
+                        OffensiveBps = (int)offensiveBpts;
+                        MovementBps = (int)movementBpts;
 
                         IMyCubeGrid mainGrid = connectedGrids[0];
                         FactionName = "None";
@@ -646,7 +671,6 @@ namespace klime.PointCheck
         {
             SBL.Clear();
             GunL.Clear();
-
             Bpts = 0;
             InstalledThrust = 0;
             Mass = 0;
