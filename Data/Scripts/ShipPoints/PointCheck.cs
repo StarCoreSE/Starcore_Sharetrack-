@@ -25,6 +25,7 @@ using static Math0424.Networking.MyNetworkHandler;
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
 using VRage.Noise.Patterns;
 using VRage;
+using System.Linq;
 
 namespace klime.PointCheck
 {
@@ -1034,46 +1035,46 @@ namespace klime.PointCheck
         }
 
 
-       // Update the given sphere entity with the given Capsphere
-private void UpdateCapZone(MyEntity sphereEntity, string Capsphere)
-{
-    try
-    {
-        if (sphereEntity == null) return;
-        
-        // Set the visibility of the sphere entity
-        sphereEntity.Render.Visible = SphereVisual;
-        
-        // Refresh the model of the sphere entity
-        sphereEntity.RefreshModels($"{ModContext.ModPath}{Capsphere}", null);
-        
-        // Remove and update the render object
-        sphereEntity.Render.RemoveRenderObjects();
-        sphereEntity.Render.UpdateRenderObject(true);
-    }
-    catch (Exception ex)
-    {
-        MyLog.Default.WriteLineAndConsole($"Updating Capzone failed: " + ex);
-    }
-}
+        // Update the given sphere entity with the given Capsphere
+        private void UpdateCapZone(MyEntity sphereEntity, string Capsphere)
+        {
+            if (sphereEntity == null) return;
 
-internal void UpdateCapZone1()
-{
-    // Update the first cap zone
-    UpdateCapZone(_sphereEntity, Capsphere1);
-}
+            try
+            {
+                // Set the visibility of the sphere entity
+                sphereEntity.Render.Visible = SphereVisual;
 
-internal void UpdateCapZone2()
-{
-    // Update the second cap zone
-    UpdateCapZone(_sphereEntity2, Capsphere2);
-}
+                // Refresh the model of the sphere entity
+                sphereEntity.RefreshModels($"{ModContext.ModPath}{Capsphere}", null);
 
-internal void UpdateCapZone3()
-{
-    // Update the third cap zone
-    UpdateCapZone(_sphereEntity3, Capsphere3);
-}
+                // Remove and update the render object
+                sphereEntity.Render.RemoveRenderObjects();
+                sphereEntity.Render.UpdateRenderObject(true);
+            }
+            catch (Exception ex)
+            {
+                MyLog.Default.WriteLineAndConsole($"Updating Capzone failed: {ex}");
+            }
+        }
+
+        internal void UpdateCapZone1()
+        {
+            // Update the first cap zone
+            UpdateCapZone(_sphereEntity, Capsphere1);
+        }
+
+        internal void UpdateCapZone2()
+        {
+            // Update the second cap zone
+            UpdateCapZone(_sphereEntity2, Capsphere2);
+        }
+
+        internal void UpdateCapZone3()
+        {
+            // Update the third cap zone
+            UpdateCapZone(_sphereEntity3, Capsphere3);
+        }
 
         public override void UpdateAfterSimulation()
         {
@@ -1087,10 +1088,8 @@ internal void UpdateCapZone3()
                 temp_LocalTimer = 0;
                 temp_ServerTimer = 0;
             }
-            if (MyAPIGateway.Utilities.IsDedicated)
-            {
-                temp_ServerTimer++;
-            }
+
+
 
             newGameModeSwitch = GameModeSwitch.Value;
             if (oldGameModeSwitch != newGameModeSwitch && joinInit == true)
@@ -1120,6 +1119,7 @@ internal void UpdateCapZone3()
             {
                 ServerSyncTimer.Value = temp_ServerTimer;
                 ServerSyncTimer.Push();
+
             }
 
             if (broadcaststat && !IAmTheCaptainNow && temp_LocalTimer % 60 == 0)
@@ -1131,28 +1131,55 @@ internal void UpdateCapZone3()
             }
 
 
-            if (timer % 60 == 0)
-            try
+            if (timer % 60 == 0 && !MyAPIGateway.Utilities.IsDedicated)
             {
-
-                _managedBntities.Clear();
-                BoundingSphereD sph = new BoundingSphereD(Vector3D.Zero, 22500);
-                MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sph, _managedBntities);
-
-                foreach (var entity in _managedBntities)
+                try
                 {
-                    MyCubeGrid grid = entity as MyCubeGrid;
-                    if (grid != null)
+                    BoundingSphereD sph = new BoundingSphereD(Vector3D.Zero, 30000);
+                    var entities = new List<MyEntity>();
+                    MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sph, entities);
+
+                    foreach (var entity in entities)
                     {
-                        if (grid.DisplayName == "blocker")
+                        MyCubeGrid grid = entity as MyCubeGrid;
+                        if (grid != null && grid.DisplayName == "blocker")
                         {
                             grid.Physics.Enabled = false;
                         }
                     }
                 }
+                catch (Exception e)
+                {
+                    // Handle the exception appropriately, e.g., logging or displaying an error message.
+                }
             }
-            catch
-            {}
+
+            if (MyAPIGateway.Utilities.IsDedicated)
+            {
+                temp_ServerTimer++;
+                if (temp_ServerTimer % 60 == 0)
+                {
+                    try
+                    {
+                        BoundingSphereD sphere = new BoundingSphereD(Vector3D.Zero, 30000);
+                        var entities = new List<MyEntity>();
+                        MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities);
+
+                        foreach (var entity in entities)
+                        {
+                            MyCubeGrid grid = entity as MyCubeGrid;
+                            if (grid != null && grid.DisplayName == "blocker")
+                            {
+                                grid.Physics.Enabled = false;
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        // Handle the exception appropriately, e.g., logging or displaying an error message.
+                    }
+                }
+            }
 
 
 
@@ -1169,21 +1196,21 @@ internal void UpdateCapZone3()
                             _fastStart = timer;
                             if (joinInit == false)
                             {
-                                    Static.MyNetwork.TransmitToServer(new BasicPacket(7), true, true);
+                                Static.MyNetwork.TransmitToServer(new BasicPacket(7), true, true);
 
-                                    ServerMatchState.Fetch();
-                                    team1.Fetch();
-                                    team2.Fetch();
-                                    team3.Fetch();
-                                    ServerMatchState.Fetch(); ServerSyncTimer.Fetch();
-                                    Team1Tickets.Fetch();
-                                    Team2Tickets.Fetch();
-                                    Team3Tickets.Fetch();
-                                    ThreeTeams.Fetch();
-                                    GameModeSwitch.Fetch();
-                                    Local_GameModeSwitch = GameModeSwitch.Value;
-                                    joinInit = true;
-                                
+                                ServerMatchState.Fetch();
+                                team1.Fetch();
+                                team2.Fetch();
+                                team3.Fetch();
+                                ServerMatchState.Fetch(); ServerSyncTimer.Fetch();
+                                Team1Tickets.Fetch();
+                                Team2Tickets.Fetch();
+                                Team3Tickets.Fetch();
+                                ThreeTeams.Fetch();
+                                GameModeSwitch.Fetch();
+                                Local_GameModeSwitch = GameModeSwitch.Value;
+                                joinInit = true;
+
                             }
 
                         }
@@ -1541,7 +1568,14 @@ internal void UpdateCapZone3()
                                     {
                                         thrustString = Math.Round((tracked.InstalledThrust / 1000000f), 2).ToString() + "M";
                                     }
+
                                     string playerName = tracked.Owner == null ? tracked.GridName : tracked.Owner.DisplayName;
+
+                                    if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
+                                    {
+                                        playerName = playerName.Substring(1);
+                                    }
+
                                     string factionName = tracked.Owner == null ? "" : MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(tracked.OwnerID)?.Name;
                                     float speed = icubeG.GridSizeEnum == MyCubeSize.Large ? MyDefinitionManager.Static.EnvironmentDefinition.LargeShipMaxSpeed : MyDefinitionManager.Static.EnvironmentDefinition.SmallShipMaxSpeed;
 
@@ -1582,14 +1616,14 @@ internal void UpdateCapZone3()
                                             + "\n"
                                             + "\n" + "<color=Orange>----Battle Stats----"
 
-                                            + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString() 
-                                            + " (<color=Red> " + tracked.offensivePercentage.ToString() 
-                                            + "<color=White>% | <color=Green>" 
-                                            + tracked.powerPercentage.ToString() 
-                                            + "<color=White>% | <color=DeepSkyBlue>" 
-                                            + tracked.movementPercentage.ToString() 
-                                            + "<color=White>% | <color=LightGray>" 
-                                            + tracked.miscPercentage.ToString() 
+                                            + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
+                                            + " (<color=Red> " + tracked.offensivePercentage.ToString()
+                                            + "<color=White>% | <color=Green>"
+                                            + tracked.powerPercentage.ToString()
+                                            + "<color=White>% | <color=DeepSkyBlue>"
+                                            + tracked.movementPercentage.ToString()
+                                            + "<color=White>% | <color=LightGray>"
+                                            + tracked.miscPercentage.ToString()
                                             + "<color=White>% )"
 
                                             + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
@@ -1654,6 +1688,11 @@ internal void UpdateCapZone3()
                                     thrustString = Math.Round((tracked.InstalledThrust / 1000000f), 2).ToString() + "M";
                                 }
                                 string playerName = tracked.Owner == null ? tracked.GridName : tracked.Owner.DisplayName;
+
+                                if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
+                                {
+                                    playerName = playerName.Substring(1);
+                                }
                                 string factionName = tracked.Owner == null ? "" : MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(tracked.OwnerID)?.Name;
                                 float speed = icubeG.GridSizeEnum == MyCubeSize.Large ? MyDefinitionManager.Static.EnvironmentDefinition.LargeShipMaxSpeed : MyDefinitionManager.Static.EnvironmentDefinition.SmallShipMaxSpeed;
 
@@ -1886,12 +1925,12 @@ internal void UpdateCapZone3()
                 if (timer % 60 == 0 && integretyMessage != null && text_api.Heartbeat)
                 {
 
-                    StringBuilder temp_text = new StringBuilder(); 
+                    StringBuilder temp_text = new StringBuilder();
                     Dictionary<string, List<string>> trackedShips = new Dictionary<string, List<string>>();
-                    Dictionary<string, double> totalMass = new Dictionary<string, double>(); 
+                    Dictionary<string, double> totalMass = new Dictionary<string, double>();
                     Dictionary<string, int> totalBattlePoints = new Dictionary<string, int>();
 
-                    Dictionary<string,int> totalMiscBps = new Dictionary<string, int>();
+                    Dictionary<string, int> totalMiscBps = new Dictionary<string, int>();
                     Dictionary<string, int> totalPowerBps = new Dictionary<string, int>();
                     Dictionary<string, int> totalOffensiveBps = new Dictionary<string, int>();
                     Dictionary<string, int> totalMovementBps = new Dictionary<string, int>();
@@ -2035,9 +2074,9 @@ internal void UpdateCapZone3()
                             PWR,
                             tempThrust));
                     }
-                    
-                    
-                    
+
+
+
                     foreach (var x in trackedShips.Keys)
                     {
                         string massStr = Math.Round((totalMass[x] / 1000000f), 2).ToString() + "M";
@@ -2048,9 +2087,9 @@ internal void UpdateCapZone3()
                         string PowerPercentage = ((int)(totalPowerBps[x] * totalBpsInv + 0.5f)).ToString();
                         string MiscPercentage = ((int)(totalMiscBps[x] * totalBpsInv + 0.5f)).ToString();
 
-                        temp_text.Append("<color=white>---- <color=orange>" 
-                            + x + " : " + massStr + " : " 
-                            + totalBattlePoints[x] + "bp <color=white>(<color=Red>" + OffensivePercentage 
+                        temp_text.Append("<color=white>---- <color=orange>"
+                            + x + " : " + massStr + " : "
+                            + totalBattlePoints[x] + "bp <color=white>(<color=Red>" + OffensivePercentage
                             + "<color=white>%|<color=Green>" + PowerPercentage + "<color=white>%|<color=DeepSkyBlue>"
                             + MovementPercentage + "<color=white>%|<color=LightGray>"
                             + MiscPercentage + "<color=white>%)"
@@ -2164,67 +2203,76 @@ internal void UpdateCapZone3()
                         t_tempteam2 = team2.Value;
                         t_tempteam3 = team3.Value;
                         ServerMatchState.Value = LocalMatchState;
+
                         try
                         {
-                            // Check if auto-tracking is enabled and if the timer is divisible by 60
                             bool autotrack = true;
                             if (autotrack && timer % 60 == 0)
                             {
-                                // Check if the player is in a cockpit
-
                                 var controlledEntity = MyAPIGateway.Session.Player?.Controller?.ControlledEntity?.Entity;
                                 IMyCockpit cockpit = controlledEntity as IMyCockpit;
+                                long entityId = cockpit.CubeGrid.EntityId;
 
-                                
-                                if (cockpit != null)
+
+                                if (cockpit != null && (!Tracking.Contains(entityId)))
                                 {
-                                    long entityId = cockpit.CubeGrid.EntityId;
 
-                                    // If the cockpit's grid is not in the tracking list, process it
-                                    if (!Tracking.Contains(entityId))
+                                    bool hasGyroscope = false;
+                                    bool hasBatteryOrReactor = false;
+                                    var gridBlocks = new List<IMySlimBlock>();
+                                    cockpit.CubeGrid.GetBlocks(gridBlocks);
+
+
+                                    foreach (var block in gridBlocks)
+                                    {
+                                        if (block.FatBlock is IMyGyro)
+                                        {
+                                            hasGyroscope = true;
+                                        }
+                                        else if (block.FatBlock is IMyBatteryBlock || block.FatBlock is IMyReactor)
+                                        {
+                                            hasBatteryOrReactor = true;
+                                        }
+
+                                        if (hasGyroscope && hasBatteryOrReactor)
+                                        {
+                                            break;  // Exit the loop as we've found both.
+                                        }
+                                    }
+
+                                    if (hasGyroscope && hasBatteryOrReactor)
                                     {
                                         // Create a packet with the grid data
                                         PacketGridData packet = new PacketGridData
                                         {
                                             id = entityId,
-                                            value = (byte)(Tracking.Contains(entityId) ? 2 : 1),
+                                            value = 1,
                                         };
 
                                         // Transmit the packet to the server
                                         Static.MyNetwork.TransmitToServer(packet, true);
 
-                                        // Process the packet value
-                                        if (packet.value == 1)
+                                        // Add the grid to the tracker
+                                        MyAPIGateway.Utilities.ShowNotification("ShipTracker: Added grid to tracker");
+                                        Tracking.Add(entityId);
+
+                                        // Show the integrity message if it's not visible
+                                        if (!integretyMessage.Visible)
                                         {
-                                            // Add the grid to the tracker
-                                            MyAPIGateway.Utilities.ShowNotification("ShipTracker: Added grid to tracker");
-                                            Tracking.Add(entityId);
-
-                                            // Show the integrity message if it's not visible
-                                            if (!integretyMessage.Visible)
-                                            {
-                                                integretyMessage.Visible = true;
-                                            }
-
-                                            // Create the HUD for the grid
-                                            Data[entityId].CreateHud();
+                                            integretyMessage.Visible = true;
                                         }
-                                        else
-                                        {
-                                            // Remove the grid from the tracker
-                                            MyAPIGateway.Utilities.ShowNotification("ShipTracker: Removed grid from tracker");
-                                            Tracking.Remove(entityId);
 
-                                            // Dispose the HUD for the grid
-                                            Data[entityId].DisposeHud();
-                                        }
+                                        // Create the HUD for the grid
+                                        Data[entityId].CreateHud();
                                     }
                                 }
                             }
                         }
                         catch (Exception AT)
                         {
+                            // Consider logging the exception or handling it in some way.
                         }
+
 
                         if (IAmTheCaptainNow)
                         {
@@ -2987,7 +3035,7 @@ internal void UpdateCapZone3()
                 all_players.Clear();
                 listPlayers.Clear();
             }
-             
+
             //NetworkAPI.Instance.Close();
             foreach (var x in Data.Keys)
             {
@@ -3020,7 +3068,7 @@ internal void UpdateCapZone3()
             //MyAPIGateway.Utilities.ShowMessage("GM", "RandomVector3d:" + CrazyOutputVector.ToString());
             return CrazyOutputVector;
         }
-        }
+    }
 
 
 

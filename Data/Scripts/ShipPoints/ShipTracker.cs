@@ -26,6 +26,7 @@ using Sandbox.Definitions;
 using CoreSystems.Api;
 using CoreSystems;
 using VRage.Audio;
+using static CoreSystems.Api.WcApiDef.WeaponDefinition.AmmoDef.GraphicDef.LineDef;
 
 namespace klime.PointCheck
 {
@@ -67,16 +68,16 @@ namespace klime.PointCheck
         [ProtoMember(26)] public Dictionary<string, int> SBL = new Dictionary<string, int>();
         [ProtoMember(27)] public float CurrentGyro;
 
-        [ProtoMember(28)] public int movementPercentage = 0;
-        [ProtoMember(29)] public int powerPercentage = 0;
-        [ProtoMember(30)] public int offensivePercentage = 0;
-        [ProtoMember(31)] public int miscPercentage = 0;
+        [ProtoIgnore] public int movementPercentage = 0;
+        [ProtoIgnore] public int powerPercentage = 0;
+        [ProtoIgnore] public int offensivePercentage = 0;
+        [ProtoIgnore] public int miscPercentage = 0;
 
-        [ProtoMember(32)] public int MovementBps = 0;
-        [ProtoMember(33)] public int PowerBps = 0;
-        [ProtoMember(34)] public int OffensiveBps = 0;
-        [ProtoMember(35)] public int MiscBps = 0;
-
+        [ProtoIgnore] public int MovementBps = 0;
+        [ProtoIgnore] public int PowerBps = 0;
+        [ProtoIgnore] public int OffensiveBps = 0;
+        [ProtoIgnore] public int MiscBps = 0;
+        [ProtoIgnore] public Vector3 OriginalFactionColor = Vector3.One;
         public ShipTracker() { }
 
         public ShipTracker(IMyCubeGrid grid)
@@ -504,10 +505,9 @@ namespace klime.PointCheck
                             }
                         }
 
-                        // pre-calculate totalBpts
-                        float totalBpts = 0;
-                        totalBpts = movementBpts + powerBpts + offensiveBpts + MiscBpts;
-                        float totalBptsInv = 100f / totalBpts; // pre-calculate inverse of totalBpts
+                        // pre-calculate totalBpts and totalBptsInv
+                        float totalBpts = movementBpts + powerBpts + offensiveBpts + MiscBpts;
+                        float totalBptsInv = totalBpts > 0 ? 100f / totalBpts : 100f / (totalBpts + .1f);
 
                         // calculate percentage of Bpts for each block type
                         movementPercentage = (int)(movementBpts * totalBptsInv + 0.5f);
@@ -524,23 +524,40 @@ namespace klime.PointCheck
                         FactionName = "None";
                         OwnerName = "Unowned";
 
+                        IsFunctional = hasPower && hasCockpit && hasGyro;
+
                         if (mainGrid.BigOwners != null && mainGrid.BigOwners.Count > 0)
                         {
                             OwnerID = mainGrid.BigOwners[0];
                             Owner = PointCheck.GetOwner(OwnerID);
                             OwnerName = controller ?? Owner?.DisplayName ?? GridName;
 
+                            if (!string.IsNullOrEmpty(OwnerName) && OwnerName != GridName)
+                            {
+                                OwnerName = OwnerName.Substring(1);
+
+
+                            }
+
+
+
+
+
                             var f = MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(OwnerID);
                             if (f != null)
                             {
                                 FactionName = f.Tag ?? FactionName;
                                 FactionColor = ColorMaskToRGB(f.CustomColor);
+                                OriginalFactionColor = f.CustomColor;
+                                //MyAPIGateway.Utilities.ShowNotification("RealFac " + f.CustomColor);
                             }
+
+
                         }
 
                         GridName = Grid.DisplayName;
                         Position = Grid.Physics.CenterOfMassWorld;
-                        IsFunctional = hasPower && hasCockpit && hasGyro;
+                        
 
                         IMyTerminalBlock shield_block = null;
                         foreach (var g in connectedGrids)
@@ -627,18 +644,46 @@ namespace klime.PointCheck
 
                     nametag.Message.Clear();
 
-                    if (PointCheck.viewstat == 0 || PointCheck.viewstat == 2)
+                    if (IsFunctional)
                     {
-                        nametag.Message.Append(OwnerName);
+                        if (PointCheck.viewstat == 0 || PointCheck.viewstat == 2)
+                        {
+                            nametag.Message.Append(OwnerName);
+                        }
+                        if (PointCheck.viewstat == 1)
+                        {
+                            nametag.Message.Append(GridName);
+                        }
+                        if (PointCheck.viewstat == 2)
+                        {
+                            nametag.Message.Append("\n" + GridName);
+                        }
                     }
-                    if (PointCheck.viewstat == 1)
+                    else
                     {
-                        nametag.Message.Append(GridName);
+                        //nametag.Message.Clear();
+
+
+                        if (PointCheck.viewstat == 0 || PointCheck.viewstat == 2)
+                        {
+                            nametag.Message.Append(OwnerName + "<color=white>:[Dead]");
+                        }
+                        if (PointCheck.viewstat == 1)
+                        {
+                            nametag.Message.Append(GridName + "<color=white>:[Dead]");
+                        }
+                        if (PointCheck.viewstat == 2)
+                        {
+                            nametag.Message.Append("\n" + GridName + "<color=white>:[Dead]");
+                        }
+
                     }
-                    if (PointCheck.viewstat == 2)
-                    {
-                        nametag.Message.Append("\n" + GridName);
-                    }
+
+
+
+
+
+
                     nametag.Offset = -nametag.GetTextLength() / 2;
 
                 }
