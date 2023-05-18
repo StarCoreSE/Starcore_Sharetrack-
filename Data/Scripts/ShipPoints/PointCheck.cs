@@ -1142,7 +1142,7 @@ namespace klime.PointCheck
                     foreach (var entity in entities)
                     {
                         MyCubeGrid grid = entity as MyCubeGrid;
-                        if (grid != null && grid.DisplayName == "blocker")
+                        if (grid != null && (grid.DisplayName.Contains("blocker")))
                         {
                             grid.Physics.Enabled = false;
                         }
@@ -1168,7 +1168,7 @@ namespace klime.PointCheck
                         foreach (var entity in entities)
                         {
                             MyCubeGrid grid = entity as MyCubeGrid;
-                            if (grid != null && grid.DisplayName == "blocker")
+                            if (grid != null && grid.DisplayName.Contains("blocker"))
                             {
                                 grid.Physics.Enabled = false;
                             }
