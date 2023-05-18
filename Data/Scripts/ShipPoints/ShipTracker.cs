@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
-
 using BlendTypeEnum = VRageRender.MyBillboard.BlendTypeEnum;
-
 using VRage.ModAPI;
 using VRageMath;
 using VRage.Game;
@@ -19,7 +17,6 @@ using VRage.Game.Components;
 using VRage.Game.ObjectBuilders;
 using VRage.Game.Entity;
 using VRage.ObjectBuilders;
-
 using SpaceEngineers.Game.ModAPI;
 using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Definitions;
@@ -68,16 +65,16 @@ namespace klime.PointCheck
         [ProtoMember(26)] public Dictionary<string, int> SBL = new Dictionary<string, int>();
         [ProtoMember(27)] public float CurrentGyro;
 
-        [ProtoIgnore] public int movementPercentage = 0;
-        [ProtoIgnore] public int powerPercentage = 0;
-        [ProtoIgnore] public int offensivePercentage = 0;
-        [ProtoIgnore] public int miscPercentage = 0;
+        [ProtoMember(28)] public int movementPercentage = 0;
+        [ProtoMember(29)] public int powerPercentage = 0;
+        [ProtoMember(30)] public int offensivePercentage = 0;
+        [ProtoMember(31)] public int miscPercentage = 0;
 
-        [ProtoIgnore] public int MovementBps = 0;
-        [ProtoIgnore] public int PowerBps = 0;
-        [ProtoIgnore] public int OffensiveBps = 0;
-        [ProtoIgnore] public int MiscBps = 0;
-        [ProtoIgnore] public Vector3 OriginalFactionColor = Vector3.One;
+        [ProtoMember(32)] public int MovementBps = 0;
+        [ProtoMember(33)] public int PowerBps = 0;
+        [ProtoMember(34)] public int OffensiveBps = 0;
+        [ProtoMember(35)] public int MiscBps = 0;
+        [ProtoMember(36)] public Vector3 OriginalFactionColor = Vector3.One;
         public ShipTracker() { }
 
         public ShipTracker(IMyCubeGrid grid)
