@@ -1617,14 +1617,14 @@ namespace klime.PointCheck
                                             + "\n" + "<color=Orange>----Battle Stats----"
 
                                             + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
-                                            + " (<color=Red> " + tracked.offensivePercentage.ToString()
-                                            + "<color=White>% | <color=Green>"
+                                            + " <color=Orange>[<color=Red> " + tracked.offensivePercentage.ToString()
+                                            + "<color=White>% <color=Orange>| <color=Green>"
                                             + tracked.powerPercentage.ToString()
-                                            + "<color=White>% | <color=DeepSkyBlue>"
+                                            + "<color=White>% <color=Orange>| <color=DeepSkyBlue>"
                                             + tracked.movementPercentage.ToString()
-                                            + "<color=White>% | <color=LightGray>"
+                                            + "<color=White>% <color=Orange>| <color=LightGray>"
                                             + tracked.miscPercentage.ToString()
-                                            + "<color=White>% )"
+                                            + "<color=White>% <color=Orange>]"
 
                                             + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                             + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
@@ -1732,15 +1732,15 @@ namespace klime.PointCheck
                                         + "\n" + "<color=Green>Max Speed<color=White>: " + speed
                                         + "\n"
                                         + "\n" + "<color=Orange>----Battle Stats----"
-                                        + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
-                                            + " (<color=Red> " + tracked.offensivePercentage.ToString()
-                                            + "<color=White>% | <color=Green>"
+                                            + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
+                                            + " <color=Orange>[<color=Red> " + tracked.offensivePercentage.ToString()
+                                            + "<color=White>% <color=Orange>| <color=Green>"
                                             + tracked.powerPercentage.ToString()
-                                            + "<color=White>% | <color=DeepSkyBlue>"
+                                            + "<color=White>% <color=Orange>| <color=DeepSkyBlue>"
                                             + tracked.movementPercentage.ToString()
-                                            + "<color=White>% | <color=LightGray>"
+                                            + "<color=White>% <color=Orange>| <color=LightGray>"
                                             + tracked.miscPercentage.ToString()
-                                            + "<color=White>% )"
+                                            + "<color=White>% <color=Orange>]"
 
                                         + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                         + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
