@@ -112,7 +112,7 @@ namespace klime.PointCheck
         public static int decaytime = 180;
         public static int delaytime = 60; //debug
         public static int matchtime = 72000;
-        public static int MatchTickets = 1250;
+        public static int MatchTickets = 1500;
         public static int temp_ServerTimer = 0;
         public int temp_LocalTimer = 0;
         //bubble visual
