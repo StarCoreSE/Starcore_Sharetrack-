@@ -2089,10 +2089,10 @@ namespace klime.PointCheck
 
                         temp_text.Append("<color=white>---- <color=orange>"
                             + x + " : " + massStr + " : "
-                            + totalBattlePoints[x] + "bp <color=white>(<color=Red>" + OffensivePercentage
-                            + "<color=white>%|<color=Green>" + PowerPercentage + "<color=white>%|<color=DeepSkyBlue>"
-                            + MovementPercentage + "<color=white>%|<color=LightGray>"
-                            + MiscPercentage + "<color=white>%)"
+                            + totalBattlePoints[x] + "bp <color=orange>[<color=Red>" + OffensivePercentage
+                            + "<color=white>%<color=orange>|<color=Green>" + PowerPercentage + "<color=white>%<color=orange>|<color=DeepSkyBlue>"
+                            + MovementPercentage + "<color=white>%<color=orange>|<color=LightGray>"
+                            + MiscPercentage + "<color=white>%<color=orange>]"
                             + "<color=white> ---------\n");
                         foreach (var y in trackedShips[x])
 
