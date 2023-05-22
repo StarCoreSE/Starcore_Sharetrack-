@@ -316,6 +316,7 @@ namespace klime.PointCheck
 {"TaiidanRailBomber",true},
 {"TaiidanHangarFighter",true},
 {"TaiidanHangarBomber",true},
+{"TaiidanHangarBomberMedium",true},
 {"TaiidanSingleHangar",true},
 {"MA_Guardian",true},
 {"Laser_Block",true},
