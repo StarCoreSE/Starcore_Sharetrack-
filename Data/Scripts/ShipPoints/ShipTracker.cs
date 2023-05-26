@@ -449,9 +449,15 @@ namespace klime.PointCheck
                                             case "M5D-2E HELIOS Plasma Pulser":
                                                 mCs = 0.15f;
                                                 break;
+                                            case "Chiasm [Arc Emitter]":
+                                                t_N = "Chiasm";
+                                                mCs = 0.15f;
+                                                break;
                                             case "Flares":
                                                 mCs = 0.25f;
                                                 break;
+
+                                                //these names are from the block SBC, NOT the .cs file for the weapon
                                         }
 
 
