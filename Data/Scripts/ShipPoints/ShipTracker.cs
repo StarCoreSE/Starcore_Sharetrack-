@@ -556,8 +556,8 @@ namespace klime.PointCheck
 
                             if (!string.IsNullOrEmpty(OwnerName) && OwnerName != GridName)
                             {
-                                OwnerName = OwnerName.Substring(1);
-
+                                //OwnerName = OwnerName.Substring(1);
+                                OwnerName = OwnerName;
 
                             }
 
