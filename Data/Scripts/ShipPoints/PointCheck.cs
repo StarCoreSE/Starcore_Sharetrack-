@@ -147,15 +147,6 @@ namespace klime.PointCheck
 {"MA_Gimbal_Laser_T2_Armored_Slope",true},
 {"MA_Gimbal_Laser_T2_Armored_Slope2",true},
 {"MA_Gimbal_Laser_T2_Armored_Slope45",true},
-{"MA_AC150",true},
-{"MA_AC150_30",true},
-{"MA_AC150_45",true},
-{"MA_AC150_45_Gantry",true},
-{"MA_AC150_Gantry",true},
-{"K_SA_Gauss_APC",true},
-{"K_SA_Gauss_AMS",true},
-{"K_SA_Gauss_ERC",true},
-{"MA_Gladius",true},
 {"MA_PDX",true},
 {"MA_Gimbal_Laser",true},
 {"MA_Gimbal_Laser_Armored",true},
@@ -173,14 +164,19 @@ namespace klime.PointCheck
 {"MA_Fixed_006",true},
 {"MA_Fixed_T2",true},
 {"MA_Fixed_T2_Naked",true},
+{"MA_AC150",true},
+{"MA_AC150_30",true},
+{"MA_AC150_45",true},
+{"MA_AC150_45_Gantry",true},
+{"MA_AC150_Gantry",true},
+{"MA_Gladius",true},
 {"MA_Fixed_T3",true},
 {"MA_Tiger",true},
 {"MA_Crouching_Tiger",true},
+{"K_SA_Gauss_APC",true},
+{"K_SA_Gauss_AMS",true},
+{"K_SA_Gauss_ERC",true},
 {"AMSlaser",true},
-{"MCRNRightRetractPDC",true},
-{"MCRNLeftRetractPDC",true},
-{"MCRNTopRetractPDC",true},
-{"MCRNPDCTurretLB",true},
 {"ARYXGaussCannon",true},
 {"AWGGG",true},
 {"ARYXMagnetarCannon",true},
@@ -251,15 +247,15 @@ namespace klime.PointCheck
 {"Odin_Laser_Fixed",true},
 {"Odin_Autocannon_Fixed",true},
 {"Odin_PDC",true},
+{"Odin_PDC_45_Slope",true},
+{"Odin_PDC_Half_Slope_Tip",true},
+{"Odin_PDC_Half",true},
+{"Odin_PDC_Half_Slope_Top",true},
 {"Odin_Defense_1x2",true},
 {"Odin_Gatling_Laser",true},
 {"Odin_5x5_Cannon",true},
 {"BlinkDriveLarge",true},
 {"Chet_Flak_Cannon",true},
-{"Odin_PDC_45_Slope",true},
-{"Odin_PDC_Half_Slope_Tip",true},
-{"Odin_PDC_Half",true},
-{"Odin_PDC_Half_Slope_Top",true},
 {"Odin_CoilCannon",true},
 {"Odin_Autocannon_2",true},
 {"Starcore_M_Laser_Block",true},
@@ -312,9 +308,9 @@ namespace klime.PointCheck
 {"HakkeroProjectileMini",true},
 {"HakkeroBeamMini",true},
 {"SLAM",true},
+{"TaiidanHangarFighter",true},
 {"TaiidanRailFighter",true},
 {"TaiidanRailBomber",true},
-{"TaiidanHangarFighter",true},
 {"TaiidanHangarBomber",true},
 {"TaiidanHangarBomberMedium",true},
 {"TaiidanSingleHangar",true},
@@ -351,10 +347,47 @@ namespace klime.PointCheck
 {"longsword",true},
 {"65_Launcher_FixedMount",true},
 {"Hellfire_Laser_Block",true},
-{"HAS_Cyclops",true}
+{"HAS_Cyclops",true},
+{"HAS_Crossfield", true}
 };
 
-
+        public static Dictionary<string, bool> pdDictionary = new Dictionary<string, bool>
+        {
+            {"MA_T2PDX",true},
+{"MA_T2PDX_Slope",true},
+{"MA_T2PDX_Slope2",true},
+{"MA_Gimbal_Laser_T2",true},
+{"MA_Gimbal_Laser_T2_Armored",true},
+{"MA_Gimbal_Laser_T2_Armored_Slope",true},
+{"MA_Gimbal_Laser_T2_Armored_Slope2",true},
+{"MA_Gimbal_Laser_T2_Armored_Slope45",true},
+{"MA_PDX",true},
+{"MA_Gimbal_Laser",true},
+{"MA_Gimbal_Laser_Armored",true},
+{"MA_Gimbal_Laser_Armored_Slope",true},
+{"MA_Gimbal_Laser_Armored_Slope2",true},
+{"MA_Gimbal_Laser_Armored_Slope45",true},
+{"MA_PDT",true},
+{"MA_Fixed_000",true},
+{"MA_Fixed_001",true},
+{"MA_Fixed_002",true},
+{"MA_Fixed_007",true},
+{"MA_Fixed_003",true},
+{"MA_Fixed_004",true},
+{"MA_Fixed_005",true},
+{"MA_Fixed_006",true},
+{"MA_Fixed_T2",true},
+{"MA_Fixed_T2_Naked",true},
+{"SC_Flare",true},
+{"Starcore_RWR_Projectiles",true},
+{"SA_HMI_Erebos",true},
+{"Laser_Block",true},
+{"HAS_Crossfield", true},
+{"TaiidanHangarFighter",true},
+{"TaiidanRailFighter",true},
+{"Starcore_AMS_I_Block",true},
+{"LargeGatlingTurret_SC",true},
+        };
 
 
 
@@ -1542,6 +1575,12 @@ namespace klime.PointCheck
                                 {
 
                                     ShipTracker tracked = new ShipTracker(icubeG);
+
+                                    string pdInvestment = tracked.pdPercentage.ToString();
+                                    string pdInvestmentNum = tracked.pdInvest.ToString();
+
+
+
                                     string total_shield_string = "None";
                                     if (tracked.TotalShieldStrength > 100)
                                     { total_shield_string = Math.Round((tracked.TotalShieldStrength / 100f), 2).ToString() + " M"; }
@@ -1626,7 +1665,7 @@ namespace klime.PointCheck
                                             + "<color=White>% <color=Orange>| <color=LightGray>"
                                             + tracked.miscPercentage.ToString()
                                             + "<color=White>% <color=Orange>]"
-
+                                            + "\n" + "<color=Green>PD Investment<color=White>: " + "<color=Orange>( <color=white>" +  pdInvestmentNum + " <color=Orange>|<color=Crimson> " + pdInvestment + "<color=White>%<color=Orange> )"
                                             + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                             + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
                                             + "\n" + "<color=Green>Gyro<color=White>: " + GyroString + "N"
@@ -1661,6 +1700,9 @@ namespace klime.PointCheck
                             {
 
                                 ShipTracker tracked = new ShipTracker(icubeG);
+                                string pdInvestment = tracked.pdPercentage.ToString();
+                                string pdInvestmentNum = tracked.pdInvest.ToString();
+
                                 string total_shield_string = "None";
                                 if (tracked.TotalShieldStrength > 100)
                                 { total_shield_string = Math.Round((tracked.TotalShieldStrength / 100f), 2).ToString() + " M"; }
@@ -1743,6 +1785,7 @@ namespace klime.PointCheck
                                             + tracked.miscPercentage.ToString()
                                             + "<color=White>% <color=Orange>]"
 
+                                        + "\n" + "<color=Green>PD Investment<color=White>: " + "<color=Orange>( <color=white>" + pdInvestmentNum + " <color=Orange>|<color=Crimson> " + pdInvestment + "<color=White>%<color=Orange> )"
                                         + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                         + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
                                         + "\n" + "<color=Green>Gyro<color=White>: " + GyroString + "N"

@@ -69,12 +69,13 @@ namespace klime.PointCheck
         [ProtoMember(29)] public int powerPercentage = 0;
         [ProtoMember(30)] public int offensivePercentage = 0;
         [ProtoMember(31)] public int miscPercentage = 0;
-
-        [ProtoMember(32)] public int MovementBps = 0;
-        [ProtoMember(33)] public int PowerBps = 0;
-        [ProtoMember(34)] public int OffensiveBps = 0;
-        [ProtoMember(35)] public int MiscBps = 0;
-        [ProtoMember(36)] public Vector3 OriginalFactionColor = Vector3.One;
+        [ProtoMember(32)] public int pdPercentage = 0;
+        [ProtoMember(33)] public int pdInvest = 0;
+        [ProtoMember(34)] public int MovementBps = 0;
+        [ProtoMember(35)] public int PowerBps = 0;
+        [ProtoMember(36)] public int OffensiveBps = 0;
+        [ProtoMember(37)] public int MiscBps = 0;
+        [ProtoMember(38)] public Vector3 OriginalFactionColor = Vector3.One;
         public ShipTracker() { }
 
         public ShipTracker(IMyCubeGrid grid)
@@ -122,8 +123,8 @@ namespace klime.PointCheck
                     {
                         Mass = (Grid as MyCubeGrid).GetCurrentMass();
                         bool hasPower = false, hasCockpit = false, hasThrust = false, hasGyro = false;
-                        float movementBpts = 0, powerBpts = 0, offensiveBpts = 0, MiscBpts = 0;
-                        int bonusBpts = 0;// new counters
+                        float movementBpts = 0, powerBpts = 0, offensiveBpts = 0, MiscBpts = 0; 
+                        int bonusBpts = 0, pdBpts = 0; // Initial value for point defense battlepoints
                         string controller = null;
 
                         foreach (var grid in connectedGrids)
@@ -480,12 +481,21 @@ namespace klime.PointCheck
                                     }
 
 
+                                    
+
                                     bool hasWeapon;
+                                    bool isPointDefense;
                                     if (PointCheck.weaponsDictionary.TryGetValue(b.BlockDefinition.Id.SubtypeName, out hasWeapon) && hasWeapon)
                                     {
                                         offensiveBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
                                         offensiveBpts += bonusBpts;
 
+                                        // Check if the weapon is also a point defense weapon
+                                        if (PointCheck.pdDictionary.TryGetValue(b.BlockDefinition.Id.SubtypeName, out isPointDefense) && isPointDefense)
+                                        {
+                                            // Increase point defense battlepoints if the weapon is a point defense weapon
+                                            pdBpts += PointCheck.PointValues.GetValueOrDefault(id, 0);
+                                        }
                                     }
                                     else
                                     {
@@ -504,6 +514,8 @@ namespace klime.PointCheck
                                         }
                                     }
 
+
+
                                 }
                             }
                         }
@@ -512,12 +524,19 @@ namespace klime.PointCheck
                         float totalBpts = movementBpts + powerBpts + offensiveBpts + MiscBpts;
                         float totalBptsInv = totalBpts > 0 ? 100f / totalBpts : 100f / (totalBpts + .1f);
 
+                        // pre-calculate offensiveBptsInv for point defense percentage
+                        float offensiveBptsInv = offensiveBpts > 0 ? 100f / offensiveBpts : 100f / (offensiveBpts + .1f);
+
                         // calculate percentage of Bpts for each block type
                         movementPercentage = (int)(movementBpts * totalBptsInv + 0.5f);
                         powerPercentage = (int)(powerBpts * totalBptsInv + 0.5f);
                         offensivePercentage = (int)(offensiveBpts * totalBptsInv + 0.5f);
                         miscPercentage = (int)(MiscBpts * totalBptsInv + 0.5f);
 
+                        // calculate percentage of point defense Bpts of offensive Bpts
+                        pdPercentage = (int)(pdBpts * offensiveBptsInv + 0.5f);
+                        
+                        pdInvest = (int)pdBpts;
                         MiscBps = (int)MiscBpts;
                         PowerBps = (int)powerBpts;
                         OffensiveBps = (int)offensiveBpts;
