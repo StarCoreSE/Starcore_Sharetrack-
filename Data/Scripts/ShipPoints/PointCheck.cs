@@ -1611,10 +1611,10 @@ namespace klime.PointCheck
 
                                     string playerName = tracked.Owner == null ? tracked.GridName : tracked.Owner.DisplayName;
 
-                                    if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
-                                    {
-                                        playerName = playerName.Substring(1);
-                                    }
+                                    //if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
+                                   // {
+                                    //    playerName = playerName.Substring(1);
+                                   // }
 
                                     string factionName = tracked.Owner == null ? "" : MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(tracked.OwnerID)?.Name;
                                     float speed = icubeG.GridSizeEnum == MyCubeSize.Large ? MyDefinitionManager.Static.EnvironmentDefinition.LargeShipMaxSpeed : MyDefinitionManager.Static.EnvironmentDefinition.SmallShipMaxSpeed;
@@ -1732,10 +1732,10 @@ namespace klime.PointCheck
                                 }
                                 string playerName = tracked.Owner == null ? tracked.GridName : tracked.Owner.DisplayName;
 
-                                if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
-                                {
-                                    playerName = playerName.Substring(1);
-                                }
+                              //  if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
+                              //  {
+                               //     playerName = playerName.Substring(1);
+                               // }
                                 string factionName = tracked.Owner == null ? "" : MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(tracked.OwnerID)?.Name;
                                 float speed = icubeG.GridSizeEnum == MyCubeSize.Large ? MyDefinitionManager.Static.EnvironmentDefinition.LargeShipMaxSpeed : MyDefinitionManager.Static.EnvironmentDefinition.SmallShipMaxSpeed;
 
