@@ -389,7 +389,12 @@ namespace klime.PointCheck
 {"Starcore_AMS_I_Block",true},
 {"LargeGatlingTurret_SC",true},
 {"PriestReskin_Block", true},
-            {"Heavy_Repeater",true}
+            {"Heavy_Repeater",true},
+            {"NHI_PD_Turret",true},
+{"NHI_PD_Turret_Half",true},
+{"NHI_PD_Turret_Half_Slope_Top",true},
+{"NHI_PD_Turret_Half_Slope_Tip",true},
+{"NHI_PD_Turret_45_Slope",true}
         };
 
 
