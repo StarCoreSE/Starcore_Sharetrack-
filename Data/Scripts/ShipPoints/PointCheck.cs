@@ -348,7 +348,8 @@ namespace klime.PointCheck
 {"65_Launcher_FixedMount",true},
 {"Hellfire_Laser_Block",true},
 {"HAS_Cyclops",true},
-{"HAS_Crossfield", true}
+{"HAS_Crossfield", true},
+{"PriestReskin_Block", true}
 };
 
         public static Dictionary<string, bool> pdDictionary = new Dictionary<string, bool>
@@ -387,6 +388,8 @@ namespace klime.PointCheck
 {"TaiidanRailFighter",true},
 {"Starcore_AMS_I_Block",true},
 {"LargeGatlingTurret_SC",true},
+{"PriestReskin_Block", true},
+            {"Heavy_Repeater",true}
         };
 
 
@@ -1612,9 +1615,9 @@ namespace klime.PointCheck
                                     string playerName = tracked.Owner == null ? tracked.GridName : tracked.Owner.DisplayName;
 
                                     //if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
-                                   // {
+                                    // {
                                     //    playerName = playerName.Substring(1);
-                                   // }
+                                    // }
 
                                     string factionName = tracked.Owner == null ? "" : MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(tracked.OwnerID)?.Name;
                                     float speed = icubeG.GridSizeEnum == MyCubeSize.Large ? MyDefinitionManager.Static.EnvironmentDefinition.LargeShipMaxSpeed : MyDefinitionManager.Static.EnvironmentDefinition.SmallShipMaxSpeed;
@@ -1665,7 +1668,7 @@ namespace klime.PointCheck
                                             + "<color=White>% <color=Orange>| <color=LightGray>"
                                             + tracked.miscPercentage.ToString()
                                             + "<color=White>% <color=Orange>]"
-                                            + "\n" + "<color=Green>PD Investment<color=White>: " + "<color=Orange>( <color=white>" +  pdInvestmentNum + " <color=Orange>|<color=Crimson> " + pdInvestment + "<color=White>%<color=Orange> )"
+                                            + "\n" + "<color=Green>PD Investment<color=White>: " + "<color=Orange>( <color=white>" + pdInvestmentNum + " <color=Orange>|<color=Crimson> " + pdInvestment + "<color=White>%<color=Orange> )"
                                             + "\n" + "<color=Green>Shield Max HP<color=White>: " + total_shield_string + " (" + (int)tracked.CurrentShieldStrength + "%)"
                                             + "\n" + "<color=Green>Thrust<color=White>: " + thrustString + "N"
                                             + "\n" + "<color=Green>Gyro<color=White>: " + GyroString + "N"
@@ -1732,10 +1735,10 @@ namespace klime.PointCheck
                                 }
                                 string playerName = tracked.Owner == null ? tracked.GridName : tracked.Owner.DisplayName;
 
-                              //  if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
-                              //  {
-                               //     playerName = playerName.Substring(1);
-                               // }
+                                //  if (!string.IsNullOrEmpty(playerName) && playerName != tracked.GridName)
+                                //  {
+                                //     playerName = playerName.Substring(1);
+                                // }
                                 string factionName = tracked.Owner == null ? "" : MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(tracked.OwnerID)?.Name;
                                 float speed = icubeG.GridSizeEnum == MyCubeSize.Large ? MyDefinitionManager.Static.EnvironmentDefinition.LargeShipMaxSpeed : MyDefinitionManager.Static.EnvironmentDefinition.SmallShipMaxSpeed;
 
