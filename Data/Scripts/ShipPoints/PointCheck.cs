@@ -66,8 +66,8 @@ namespace klime.PointCheck
         public RtsApi RTS_api { get; private set; }
 
         public Vector3 ctrpoint = new Vector3(0, 0, 0);
-        public Vector3 ctrpoint2 = new Vector3(4500, 0, 9000);
-        public Vector3 ctrpoint3 = new Vector3(-4500, 0, -9000);
+        public Vector3 ctrpoint2 = new Vector3(4500, 1500, 9000);
+        public Vector3 ctrpoint3 = new Vector3(-4500, -1500, -9000);
         public double capdist = 1000;
         public double capdistCenter = 1000;
         public Vector3 capdistScale;
@@ -1187,6 +1187,7 @@ namespace klime.PointCheck
                         if (grid != null && (grid.DisplayName.Contains("blocker")))
                         {
                             grid.Physics.Enabled = false;
+                            grid.RemoveFromGamePruningStructure();
                         }
                     }
                 }
@@ -1213,6 +1214,7 @@ namespace klime.PointCheck
                             if (grid != null && grid.DisplayName.Contains("blocker"))
                             {
                                 grid.Physics.Enabled = false;
+                                grid.RemoveFromGamePruningStructure();
                             }
                         }
                     }
@@ -2972,8 +2974,8 @@ namespace klime.PointCheck
                 case 3:
                     CapOut = 20;
                     ctrpoint = new Vector3(0, 0, 0);
-                    ctrpoint2 = new Vector3(4500, 0, 9000);
-                    ctrpoint3 = new Vector3(-4500, 0, -9000);
+                    ctrpoint2 = new Vector3(4500, 1500, 9000);
+                    ctrpoint3 = new Vector3(-4500, -1500, -9000);
                     capdist = 1000;
                     capdistCenter = 1000;
                     //MyAPIGateway.Utilities.ShowMessage("GM" , "capdist set to " + capdist);

@@ -656,6 +656,7 @@ namespace klime.PointCheck
                     {
                         stealthed = true;
                     }
+
                     bool visible = !(newOrigin.X > 1 || newOrigin.X < -1 || newOrigin.Y > 1 || newOrigin.Y < -1) && angle <= fov && !stealthed;
 
 
