@@ -2021,8 +2021,11 @@ namespace klime.PointCheck
                             totalOffensiveBps.Add(factionName, 0);
                             totalMovementBps.Add(factionName, 0);
                         }
+
+                        if(notDead) { 
                         totalMass[factionName] += data.Mass;
                         totalBattlePoints[factionName] += data.Bpts;
+                        }
 
                         totalMiscBps[factionName] += data.MiscBps;
                         totalPowerBps[factionName] += data.PowerBps;
