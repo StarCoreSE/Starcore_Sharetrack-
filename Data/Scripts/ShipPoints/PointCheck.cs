@@ -1620,7 +1620,7 @@ namespace klime.PointCheck
 
                 if (vStateP == ViewStateP.ItsOver && problemmessage != null && text_api.Heartbeat)
                 {
-                    var temp_text = "<color=Red>" + "A PROBLEM HAS BEEN REPORTED," + "\n" + "CHECK WITH BOTH TEAMS AND THEN TYPE '/problem' TO CLEAR THIS MESSAGE";
+                    var temp_text = "<color=Red>" + "A PROBLEM HAS BEEN REPORTED," + "\n" + "CHECK WITH BOTH TEAMS AND THEN TYPE '/fixed' TO CLEAR THIS MESSAGE";
 
                     problemmessage.Message.Clear(); problemmessage.Message.Append(temp_text); problemmessage.Visible = true;
                 }
