@@ -50,6 +50,8 @@ namespace klime.PointCheck
         public NetSync<int> ThreeTeams;
         public NetSync<int> GameModeSwitch;
         public static int Local_GameModeSwitch = 3;
+        public static int Local_ProblemSwitch = 0;
+        public NetSync<int> ProblemSwitch;
         public int newGameModeSwitch = 3;
         public int oldGameModeSwitch = 3;
         //
@@ -103,8 +105,12 @@ namespace klime.PointCheck
 
         public enum ViewState { None, InView, InView2, GridSwitch, ExitView };
         ViewState vState = ViewState.None;
+
+        public enum ViewStateP { ThisIsFine, ItsOver}
+        ViewStateP vStateP = ViewStateP.ThisIsFine;
+
         HudAPIv2 text_api;
-        public static HudAPIv2.HUDMessage statMessage, integretyMessage, timerMessage, ticketmessage, statMessage_Battle, statMessage_Battle_Gunlist;
+        public static HudAPIv2.HUDMessage statMessage, integretyMessage, timerMessage, ticketmessage, statMessage_Battle, statMessage_Battle_Gunlist, problemmessage;
         public static bool NameplateVisible = true; public static bool broadcaststat = false;
         public static String[] viewmode = new string[] { "Player", "Grid", "Grid & Player", "False" };
         public static int viewstat = 0;
@@ -503,7 +509,10 @@ namespace klime.PointCheck
         {
             MyAPIGateway.Utilities.MessageEntered += MessageEntered;
             MyNetworkHandler.Init();
-            MyAPIGateway.Utilities.ShowMessage("ShipPoints v3.2 - Control Zone", "Aim at a grid and press Shift+T to show stats, Shift+M to track a grid, Shift+J to cycle nametag style. Type '/sphere' to turn off/on the sphere visuals.");
+            MyAPIGateway.Utilities.ShowMessage("ShipPoints v3.2 - Control Zone", 
+                "Aim at a grid and press Shift+T to show stats, " +
+                "Shift+M to track a grid, Shift+J to cycle nametag style. " +
+                "Type '/sphere' to turn off/on the sphere visuals.");
 
             if (!NetworkAPI.IsInitialized)
             {
@@ -533,13 +542,15 @@ namespace klime.PointCheck
 
             team1 = CreateNetSync<string>("RED");
             team2 = CreateNetSync<string>("BLU");
-            team3 = CreateNetSync<string>("GRE");
+            team3 = CreateNetSync<string>("NEU");
 
             ServerMatchState = CreateNetSync<int>(0);
             ServerSyncTimer = CreateNetSync<int>(0);
 
             ThreeTeams = CreateNetSync<int>(0);
             GameModeSwitch = CreateNetSync<int>(3);
+
+            //ProblemSwitch = CreateNetSync<int>(0);
 
             CaptainRandVector3D = CreateNetSync<Vector3D>(ClientRandVector3D);
         }
@@ -654,7 +665,7 @@ namespace klime.PointCheck
                 { MyAPIGateway.Utilities.ShowNotification("Decay time not changed, try /setdecay xxx (in seconds)"); }
             }
 
-            if (messageText.Contains("/start") || messageText.Contains("/broadcast"))
+            if (messageText.Contains("/start"))
             {
                 Static.MyNetwork.TransmitToServer(new BasicPacket(6), true, true);
                 IAmTheCaptainNow = true;
@@ -786,6 +797,26 @@ namespace klime.PointCheck
                 Local_GameModeSwitch = 3;
                 Static.MyNetwork.TransmitToServer(new BasicPacket(14), true, true);
             }
+            
+            if (messageText.Contains("/problem"))
+            {
+                MyAPIGateway.Utilities.ShowNotification("A problem has been reported.", 10000);
+                sendToOthers = true;
+
+                Local_ProblemSwitch = 1;
+                Static.MyNetwork.TransmitToServer(new BasicPacket(17), true, true);
+
+            }
+            if (messageText.Contains("/fixed"))
+            {
+                MyAPIGateway.Utilities.ShowNotification("Fixed :^)", 10000);
+                sendToOthers = true;
+
+                Local_ProblemSwitch = 0;
+                Static.MyNetwork.TransmitToServer(new BasicPacket(18), true, true);
+
+            }
+
         }
         public static void Begin()
         {
@@ -980,7 +1011,7 @@ namespace klime.PointCheck
             }
         }
 
-        private void HUDRegistered()
+        private void HUDRegistered()    
         {
             statMessage = new HudAPIv2.HUDMessage(Scale: 1f, Font: "BI_SEOutlined", Message: new StringBuilder(""), Origin: new Vector2D(-.99, .99), HideHud: false, Blend: BlendTypeEnum.PostPP)
             {
@@ -1006,15 +1037,20 @@ namespace klime.PointCheck
                 Visible = false,
                 //InitialColor = Color.Orange
             };
-
             timerMessage = new HudAPIv2.HUDMessage(Scale: 1.2f, Font: "BI_SEOutlined", Message: new StringBuilder(""), Origin: new Vector2D(0.35, .99), HideHud: false, Shadowing: true, Blend: BlendTypeEnum.PostPP)
             {
                 Visible = false, //defaulted off?
                 InitialColor = Color.White,
                 //ShadowColor = Color.Black
             };
-
             ticketmessage = new HudAPIv2.HUDMessage(Scale: 1f, Font: "BI_SEOutlined", Message: new StringBuilder(""), Origin: new Vector2D(0.51, .99), HideHud: false, Shadowing: true, Blend: BlendTypeEnum.PostPP)
+            {
+                Visible = false, //defaulted off?
+                InitialColor = Color.White,
+                //ShadowColor = Color.Black
+            };
+
+            problemmessage = new HudAPIv2.HUDMessage(Scale: 2f, Font: "BI_SEOutlined", Message: new StringBuilder(""), Origin: new Vector2D(-.99, 0), HideHud: false, Shadowing: true, Blend: BlendTypeEnum.PostPP)
             {
                 Visible = false, //defaulted off?
                 InitialColor = Color.White,
@@ -1292,16 +1328,13 @@ namespace klime.PointCheck
 
                 if (broadcaststat && timer % 60 == 0)
                 {
-
-
                     if (IAmTheCaptainNow && ServerMatchState.Value != 1)
                     {
                         ServerMatchState.Value = 1;
 
                     }
-
-
                 }
+
             }
             catch { }
             try
@@ -1461,7 +1494,12 @@ namespace klime.PointCheck
             }
             try
             {
-                if (MyAPIGateway.Session?.Camera != null && MyAPIGateway.Session.CameraController != null && !MyAPIGateway.Gui.ChatEntryVisible && !MyAPIGateway.Gui.IsCursorVisible && MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None)
+                if (
+                    MyAPIGateway.Session?.Camera != null 
+                    && MyAPIGateway.Session.CameraController != null 
+                    && !MyAPIGateway.Gui.ChatEntryVisible 
+                    && !MyAPIGateway.Gui.IsCursorVisible 
+                    && MyAPIGateway.Gui.GetCurrentScreen == MyTerminalPageEnum.None)
                 {
                     /*
                     if (vState == ViewState.InView) { vState = ViewState.ExitView; }*/ //this disables shift T when match is go
@@ -1512,6 +1550,7 @@ namespace klime.PointCheck
                             }
                         }
                     }
+                    
                     if (MyAPIGateway.Input.IsKeyPress(MyKeys.Shift) && MyAPIGateway.Input.IsNewKeyPressed(MyKeys.N))
                     {
                         if (MyAPIGateway.Session.PromoteLevel >= MyPromoteLevel.Moderator)
@@ -1550,6 +1589,18 @@ namespace klime.PointCheck
                             MyAPIGateway.Utilities.ShowNotification("ShipTracker: Nameplate visibility set to " + viewmode[viewstat]);
                         }
                     }
+                
+                    if (Local_ProblemSwitch == 1)
+                    {
+                        if (vStateP == ViewStateP.ThisIsFine) { vStateP = ViewStateP.ItsOver; }
+                        
+                    }
+                    if (Local_ProblemSwitch == 0)
+                    {
+                        if (vStateP == ViewStateP.ItsOver) { vStateP = ViewStateP.ThisIsFine; }
+
+                    }
+
                 }
 
                 if (text_api.Heartbeat)
@@ -1565,6 +1616,18 @@ namespace klime.PointCheck
                             Data[x].DisposeHud();
                         }
                     }
+                }
+
+                if (vStateP == ViewStateP.ItsOver && problemmessage != null && text_api.Heartbeat)
+                {
+                    var temp_text = "<color=Red>" + "A PROBLEM HAS BEEN REPORTED," + "\n" + "CHECK WITH BOTH TEAMS AND THEN TYPE '/problem' TO CLEAR THIS MESSAGE";
+
+                    problemmessage.Message.Clear(); problemmessage.Message.Append(temp_text); problemmessage.Visible = true;
+                }
+
+                if (vStateP == ViewStateP.ThisIsFine && problemmessage != null && text_api.Heartbeat)
+                {
+                    problemmessage.Message.Clear(); problemmessage.Visible = false;
                 }
 
                 if (vState == ViewState.InView && statMessage != null && text_api.Heartbeat) //shift T menu
@@ -2948,6 +3011,18 @@ namespace klime.PointCheck
             //MyAPIGateway.Utilities.ShowMessage("GM" , "Three Capture Zones Active");
             Local_GameModeSwitch = 5;
         }
+
+        public static void There_Is_A_Problem()
+        {
+            Local_ProblemSwitch = 1;
+        }
+
+        public static void There_Is_A_Solution()
+        {
+            Local_ProblemSwitch = 0;
+        }
+
+        
 
         public void GameMode_Set()
         {

@@ -213,6 +213,14 @@ namespace Math0424.Networking
             {
                 PointCheck.GameMode_CrazyCap();
             }
+            if (e.PacketId == 17)
+            {
+                PointCheck.There_Is_A_Problem();
+            }
+            if (e.PacketId == 18)
+            {
+                PointCheck.There_Is_A_Solution();
+            }
         }
 
         public void Dispose()
