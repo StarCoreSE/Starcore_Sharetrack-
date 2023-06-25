@@ -1652,8 +1652,6 @@ namespace klime.PointCheck
                                     string pdInvestment = tracked.pdPercentage.ToString();
                                     string pdInvestmentNum = tracked.pdInvest.ToString();
 
-
-
                                     string total_shield_string = "None";
                                     if (tracked.TotalShieldStrength > 100)
                                     { total_shield_string = Math.Round((tracked.TotalShieldStrength / 100f), 2).ToString() + " M"; }
@@ -1671,11 +1669,24 @@ namespace klime.PointCheck
                                     {
                                         specialBlockText += "<color=Green>" + tracked.SBL[x] + "<color=White> x " + x + "\n";
                                     }
+
                                     string massString = tracked.Mass.ToString();
+                                    //float thrust = icubeG.GetMaxThrustInDirection(Base6Directions.Direction.Forward);
+                                    float thrustInKilograms = icubeG.GetMaxThrustInDirection(Base6Directions.Direction.Backward) / 9.81f; // Convert thrust from N to kg
+                                    float weight = tracked.Mass;
+
+                                    float mass = tracked.Mass;
+                                    float TWR = thrustInKilograms / weight;
+
                                     if (tracked.Mass > 1000000)
                                     {
                                         massString = Math.Round((tracked.Mass / 1000000f), 2).ToString() + "m";
+                                        mass = tracked.Mass / 1000f; // Convert mass to metric tons
                                     }
+
+
+                                    string TWRs = Math.Round((TWR),2).ToString();
+
                                     string thrustString = tracked.InstalledThrust.ToString();
                                     if (tracked.InstalledThrust > 1000000)
                                     {
@@ -1691,11 +1702,14 @@ namespace klime.PointCheck
 
                                     string factionName = tracked.Owner == null ? "" : MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(tracked.OwnerID)?.Name;
                                     float speed = icubeG.GridSizeEnum == MyCubeSize.Large ? MyDefinitionManager.Static.EnvironmentDefinition.LargeShipMaxSpeed : MyDefinitionManager.Static.EnvironmentDefinition.SmallShipMaxSpeed;
-
                                     if (RTS_api != null && RTS_api.IsReady)
                                     {
                                         speed = (float)Math.Round(RTS_api.GetMaxSpeed(icubeG), 2);
+
                                     }
+
+
+
                                     string PWRNotation;
 
                                     PWRNotation = tracked.CurrentPower > 1000 ? "GW" : "MW";
@@ -1725,7 +1739,7 @@ namespace klime.PointCheck
                                             + "\n" + "<color=Green>Total blocks<color=White>: " + tracked.BlockCount.ToString()
                                             + "\n" + "<color=Green>PCU<color=White>: " + tracked.PCU
                                             + "\n" + "<color=Green>Size<color=White>: " + (icubeG.Max + Vector3.Abs(icubeG.Min)).ToString()
-                                            + "\n" + "<color=Green>Max Speed<color=White>: " + speed
+                                            + "\n" + "<color=Green>Max Speed<color=White>: " + speed + " | <color=Green>TWR<color=White>: " + TWRs
                                             + "\n"
                                             + "\n" + "<color=Orange>----Battle Stats----"
 
@@ -1794,10 +1808,22 @@ namespace klime.PointCheck
                                     specialBlockText += "<color=Green>" + tracked.SBL[x] + "<color=White> x " + x + "\n";
                                 }
                                 string massString = tracked.Mass.ToString();
+                                //float thrust = icubeG.GetMaxThrustInDirection(Base6Directions.Direction.Forward);
+                                float thrustInKilograms = icubeG.GetMaxThrustInDirection(Base6Directions.Direction.Backward) / 9.81f; // Convert thrust from N to kg
+                                float weight = tracked.Mass; 
+
+                                float mass = tracked.Mass;
+                                float TWR = thrustInKilograms / weight;
+
                                 if (tracked.Mass > 1000000)
                                 {
                                     massString = Math.Round((tracked.Mass / 1000000f), 2).ToString() + "m";
+                                    mass = tracked.Mass / 1000f; // Convert mass to metric tons
                                 }
+
+
+                                string TWRs = Math.Round((TWR), 2).ToString();
+
                                 string thrustString = tracked.InstalledThrust.ToString();
                                 if (tracked.InstalledThrust > 1000000)
                                 {
@@ -1811,12 +1837,13 @@ namespace klime.PointCheck
                                 // }
                                 string factionName = tracked.Owner == null ? "" : MyAPIGateway.Session?.Factions?.TryGetPlayerFaction(tracked.OwnerID)?.Name;
                                 float speed = icubeG.GridSizeEnum == MyCubeSize.Large ? MyDefinitionManager.Static.EnvironmentDefinition.LargeShipMaxSpeed : MyDefinitionManager.Static.EnvironmentDefinition.SmallShipMaxSpeed;
-
                                 if (RTS_api != null && RTS_api.IsReady)
                                 {
                                     speed = (float)Math.Round(RTS_api.GetMaxSpeed(icubeG), 2);
+
                                 }
                                 string PWRNotation;
+
 
                                 PWRNotation = tracked.CurrentPower > 1000 ? "GW" : "MW";
                                 string tempPWR;
@@ -1845,7 +1872,7 @@ namespace klime.PointCheck
                                         + "\n" + "<color=Green>Total blocks<color=White>: " + tracked.BlockCount.ToString()
                                         + "\n" + "<color=Green>PCU<color=White>: " + tracked.PCU
                                         + "\n" + "<color=Green>Size<color=White>: " + (icubeG.Max + Vector3.Abs(icubeG.Min)).ToString()
-                                        + "\n" + "<color=Green>Max Speed<color=White>: " + speed
+                                        + "\n" + "<color=Green>Max Speed<color=White>: " + speed + " | <color=Green>TWR<color=White>: " + TWRs
                                         + "\n"
                                         + "\n" + "<color=Orange>----Battle Stats----"
                                             + "\n" + "<color=Green>Battle Points<color=White>: " + tracked.Bpts.ToString()
