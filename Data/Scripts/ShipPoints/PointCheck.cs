@@ -1685,7 +1685,7 @@ namespace klime.PointCheck
                                     }
 
 
-                                    string TWRs = Math.Round((TWR),2).ToString();
+                                    string TWRs = Math.Round((TWR),3).ToString();
 
                                     string thrustString = tracked.InstalledThrust.ToString();
                                     if (tracked.InstalledThrust > 1000000)
@@ -1822,7 +1822,7 @@ namespace klime.PointCheck
                                 }
 
 
-                                string TWRs = Math.Round((TWR), 2).ToString();
+                                string TWRs = Math.Round((TWR), 3).ToString();
 
                                 string thrustString = tracked.InstalledThrust.ToString();
                                 if (tracked.InstalledThrust > 1000000)
